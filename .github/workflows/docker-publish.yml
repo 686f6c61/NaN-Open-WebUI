@@ -1,0 +1,45 @@
+name: Publicar imagen Docker (GHCR)
+
+# Construye la imagen y la publica en GitHub Packages (GHCR) en cada cambio de main
+# o al crear una etiqueta vX.Y.Z. No contiene ningun secreto: la API key es del usuario
+# final y se inyecta en tiempo de ejecucion.
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login en GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Metadatos de la imagen
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/nan-open-webui
+          tags: |
+            type=raw,value=latest
+            type=ref,event=tag
+
+      - name: Build y push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

@@ -1,0 +1,24 @@
+# SearXNG para la busqueda web de Open WebUI.
+# Activa el formato JSON (que Open WebUI consulta) y desactiva el limitador.
+#
+# El 'secret_key' es el valor 'ultrasecretkey': la imagen de SearXNG lo sustituye
+# automaticamente por un secreto aleatorio unico en el primer arranque. No hay que
+# tocar nada.
+
+use_default_settings: true
+
+server:
+  secret_key: "ultrasecretkey"
+  limiter: false
+  image_proxy: true
+
+ui:
+  static_use_hash: true
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  default_lang: "all"
+  formats:
+    - html
+    - json

@@ -1,0 +1,8 @@
+# Nunca versionar secretos ni datos
+.env
+.env.*
+!.env.example
+data/
+*.tar
+*.tar.gz
+.~lock.*#

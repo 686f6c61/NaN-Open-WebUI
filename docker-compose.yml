@@ -1,0 +1,54 @@
+# nan-open-webui — levanta tu propia Open WebUI conectada a NaN.
+#
+#   1) ./setup.sh                 (crea .env y genera la clave secreta)
+#   2) edita .env -> NAN_API_KEY  (tu key de https://nan.builders)
+#   3) docker compose up -d
+#   4) abre http://localhost:3000 (o el WEBUI_PORT que elijas)
+
+services:
+  nan-open-webui:
+    # Imagen ya construida y publicada en GitHub Packages (GHCR): se descarga sola.
+    # Para construirla tu mismo en local, comenta la linea 'image' y descomenta 'build'.
+    image: ghcr.io/686f6c61/nan-open-webui:latest
+    # build: .
+    container_name: nan-open-webui
+    restart: unless-stopped
+    environment:
+      # --- Conexion a NaN (OpenAI-compatible) ---
+      - ENABLE_OPENAI_API=true
+      - OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
+      # La API key NUNCA se escribe aqui: viene de .env. Si falta, compose para con un aviso claro.
+      - OPENAI_API_KEY=${NAN_API_KEY:?Falta NAN_API_KEY -> copia .env.example a .env y pon tu key}
+      # --- Sin modelos locales (solo NaN) ---
+      - ENABLE_OLLAMA_API=false
+      # --- Sesion e interfaz ---
+      - WEBUI_AUTH=true
+      - WEBUI_NAME=${WEBUI_NAME:-NaN Chat}
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-}
+      - ENABLE_SIGNUP=${ENABLE_SIGNUP:-true}
+      # Que todos los usuarios de tu servidor vean todos los modelos de NaN
+      - BYPASS_MODEL_ACCESS_CONTROL=${BYPASS_MODEL_ACCESS_CONTROL:-true}
+      # --- Busqueda web (via SearXNG, sin API key). Ponlo en 'false' para desactivarla ---
+      - ENABLE_WEB_SEARCH=${ENABLE_WEB_SEARCH:-true}
+      - WEB_SEARCH_ENGINE=searxng
+      - SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>
+    depends_on:
+      - searxng
+    ports:
+      - "${WEBUI_PORT:-3000}:8080"
+    volumes:
+      # Datos persistentes (cuentas, chats, ajustes). Sobrevive a reinicios y updates.
+      - nan-open-webui-data:/app/backend/data
+
+  # Metabuscador autoalojado para la busqueda web: gratis, privado, SIN API key.
+  # Genera su propio secreto aleatorio unico en el primer arranque.
+  searxng:
+    image: searxng/searxng:latest
+    container_name: nan-searxng
+    restart: unless-stopped
+    volumes:
+      - ./searxng:/etc/searxng:rw
+
+volumes:
+  nan-open-webui-data:
+    name: nan-open-webui-data

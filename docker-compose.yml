@@ -32,6 +32,25 @@ services:
       - ENABLE_WEB_SEARCH=${ENABLE_WEB_SEARCH:-true}
       - WEB_SEARCH_ENGINE=searxng
       - SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>
+      # --- Voz: salida hablada con 'kokoro' de NaN. La entrada (dictado) usa el
+      #     whisper LOCAL del propio contenedor, sin depender de NaN ---
+      - AUDIO_TTS_ENGINE=openai
+      - AUDIO_TTS_OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
+      - AUDIO_TTS_OPENAI_API_KEY=${NAN_API_KEY}
+      - AUDIO_TTS_MODEL=kokoro
+      - AUDIO_TTS_VOICE=${AUDIO_TTS_VOICE:-af_sky}
+      # --- Embeddings del RAG con 'qwen3-embedding' de NaN (mejor busqueda en documentos) ---
+      - RAG_EMBEDDING_ENGINE=openai
+      - RAG_OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
+      - RAG_OPENAI_API_KEY=${NAN_API_KEY}
+      - RAG_EMBEDDING_MODEL=qwen3-embedding
+      # --- Interprete de codigo: el modelo escribe Python y se ejecuta en el navegador ---
+      - ENABLE_CODE_INTERPRETER=true
+      - CODE_INTERPRETER_ENGINE=pyodide
+      - ENABLE_CODE_EXECUTION=true
+      # --- Asistencias de escritura: autocompletado + modelo rapido para titulos/etiquetas/seguimiento ---
+      - ENABLE_AUTOCOMPLETE_GENERATION=true
+      - TASK_MODEL_EXTERNAL=${TASK_MODEL_EXTERNAL:-deepseek-v4-flash}
     depends_on:
       - searxng
     ports:

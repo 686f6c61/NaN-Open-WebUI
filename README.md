@@ -37,8 +37,10 @@ propia API key. Tus chats y tus cuentas se quedan en tu máquina.
   `whisper` (audio -> texto), `kokoro` (texto -> voz) y `qwen3-embedding` (embeddings).
 - **Capacidades**: chat con historial, **visión** (subir imágenes a los modelos
   multimodales), **búsqueda web** (incluye SearXNG autoalojado, sin API key: el modelo
-  busca en internet y responde con fuentes), **RAG** (subir documentos y preguntar),
-  **audio** (transcripción y voz), multiusuario con control de acceso, y persistencia.
+  busca en internet y responde con fuentes), **voz** (lee las respuestas con `kokoro` de
+  NaN y dicta con un whisper local), **intérprete de código** (el modelo escribe y ejecuta
+  Python en el navegador), **RAG** sobre tus documentos (embeddings con `qwen3-embedding`),
+  multiusuario con control de acceso, y persistencia.
 - **Despliegue en un comando** con Docker Compose.
 - **API key segura por diseño**: solo vive en tu `.env`, nunca en la imagen ni en el repo.
 

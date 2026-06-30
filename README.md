@@ -34,13 +34,15 @@ propia API key. Tus chats y tus cuentas se quedan en tu máquina.
 - **Open WebUI** (la UI self-hosted de referencia) preconfigurada para NaN.
 - **Modelos de NaN** disponibles desde el selector:
   `qwen3.6`, `deepseek-v4-flash`, `mimo-v2.5`, `gemma4` (chat / visión / razonamiento),
-  `whisper` (audio -> texto), `kokoro` (texto -> voz) y `qwen3-embedding` (embeddings).
+  `whisper` (audio -> texto), `kokoro` (texto -> voz), `qwen3-embedding` (embeddings)
+  y `flux-2-klein` (generación / edición de imágenes).
 - **Capacidades**: chat con historial, **visión** (subir imágenes a los modelos
   multimodales), **búsqueda web** (incluye SearXNG autoalojado, sin API key: el modelo
   busca en internet y responde con fuentes), **voz** (lee las respuestas con `kokoro` de
   NaN y dicta con un whisper local), **intérprete de código** (el modelo escribe y ejecuta
   Python en el navegador), **RAG** sobre tus documentos (embeddings con `qwen3-embedding`),
-  multiusuario con control de acceso, y persistencia.
+  **generación y edición de imágenes** con `flux-2-klein`, multiusuario con control de
+  acceso, y persistencia.
 - **Despliegue en un comando** con Docker Compose.
 - **API key segura por diseño**: solo vive en tu `.env`, nunca en la imagen ni en el repo.
 
@@ -88,6 +90,18 @@ docker run -d --name nan-open-webui -p 3000:8080 \
   -e ENABLE_OPENAI_API=true \
   -e OPENAI_API_BASE_URL=https://api.nan.builders/v1 \
   -e OPENAI_API_KEY=sk-tu-key-de-nan \
+  -e ENABLE_IMAGE_GENERATION=true \
+  -e IMAGE_GENERATION_ENGINE=openai \
+  -e IMAGE_GENERATION_MODEL=flux-2-klein \
+  -e IMAGE_SIZE=1024x1024 \
+  -e IMAGES_OPENAI_API_BASE_URL=https://api.nan.builders/v1 \
+  -e IMAGES_OPENAI_API_KEY=sk-tu-key-de-nan \
+  -e ENABLE_IMAGE_EDIT=true \
+  -e IMAGE_EDIT_ENGINE=openai \
+  -e IMAGE_EDIT_MODEL=flux-2-klein \
+  -e IMAGE_EDIT_SIZE=1024x1024 \
+  -e IMAGES_EDIT_OPENAI_API_BASE_URL=https://api.nan.builders/v1 \
+  -e IMAGES_EDIT_OPENAI_API_KEY=sk-tu-key-de-nan \
   -e WEBUI_AUTH=true \
   -v nan-open-webui-data:/app/backend/data \
   ghcr.io/686f6c61/nan-open-webui:latest
@@ -110,6 +124,11 @@ Imagen: `ghcr.io/686f6c61/nan-open-webui:latest`
 | `WEBUI_NAME` | No | `NaN Chat` | Nombre mostrado en la UI |
 | `ENABLE_SIGNUP` | No | `true` | Permitir nuevos registros |
 | `OPENAI_API_BASE_URL` | No | `https://api.nan.builders/v1` | Endpoint OpenAI-compatible |
+| `ENABLE_IMAGE_GENERATION` | No | `true` | Activar generación de imágenes |
+| `ENABLE_IMAGE_EDIT` | No | `true` | Activar edición / image-to-image |
+| `IMAGE_GENERATION_MODEL` | No | `flux-2-klein` | Modelo de imágenes de NaN |
+| `IMAGE_SIZE` | No | `1024x1024` | Tamaño por defecto; múltiplos de 16, 256-1536 px y ratio 1:3-3:1 |
+| `IMAGES_OPENAI_PARAMS` | No | — | JSON opcional para generación, por ejemplo `{"seed":42,"guidance":3.5}` |
 
 Tras crear tu cuenta admin, si no quieres mas registros pon `ENABLE_SIGNUP=false` y
 `docker compose up -d`.
@@ -166,6 +185,10 @@ Los datos (cuentas, chats, ajustes) persisten en el volumen `nan-open-webui-data
 - **"Falta NAN_API_KEY"** al arrancar -> ejecuta `./setup.sh` y rellena el `.env`.
 - **Una imagen da "no soporta imagenes"** -> selecciona un modelo de **vision**
   (`qwen3.6`, `gemma4`, `mimo-v2.5`), no uno de solo texto como `deepseek-v4-flash`.
+- **Generar/editar imagenes falla** -> comprueba que tu cuenta de NaN tiene membresia
+  `inference-tier`, que no has agotado la cuota de `flux-2-klein` (100 requests/mes),
+  que no estas disparando mas de 1 request/s, y que `IMAGE_SIZE` usa valores soportados
+  (256-1536 px, múltiplos de 16 y ratio 1:3-3:1).
 
 ---
 

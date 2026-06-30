@@ -119,6 +119,11 @@ Ya esta. Lo tienes funcionando.
 > respondera citando las fuentes. Funciona sin configurar nada y sin ninguna API key:
 > ya viene incluido un buscador propio (SearXNG). Funciona con cualquier modelo.
 
+> **Generar imagenes:** abre la herramienta de imagenes de Open WebUI y pide la imagen
+> que quieras. Viene configurada con `flux-2-klein` de NaN. Tambien puedes editar una
+> imagen de referencia desde la herramienta de edicion si tu cuenta de NaN tiene acceso
+> `inference-tier`.
+
 ---
 
 ## Para apagarlo y volver a encenderlo
@@ -147,6 +152,7 @@ Tus chats y tu cuenta se guardan; no se pierden al apagar.
 | `port is already allocated` / puerto ocupado | El 3000 lo usa otra cosa | En el `.env` cambia `WEBUI_PORT=3000` por `WEBUI_PORT=3001` y entra en `http://localhost:3001` |
 | `docker: command not found` | Docker no esta instalado | Repite el Paso 1 |
 | Una **foto** da "no soporta imagenes" | Tienes un modelo de solo texto | Elige `qwen3.6`, `gemma4` o `mimo-v2.5` |
+| Generar imagenes falla | Falta acceso `inference-tier`, cuota, rate limit o tamaño valido | Revisa tu cuenta de NaN, espera unos segundos si has generado varias seguidas, y usa tamaños como `512x512` o `1024x1024` |
 
 > Tras cualquier cambio en el `.env`, vuelve a ejecutar `docker compose up -d` para que
 > se aplique.

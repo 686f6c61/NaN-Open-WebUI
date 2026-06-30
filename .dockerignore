@@ -1,0 +1,10 @@
+# Evitar que secretos, datos locales y metadatos entren en el contexto Docker.
+.git
+.github
+.env
+.env.*
+!.env.example
+data/
+*.tar
+*.tar.gz
+.~lock.*#

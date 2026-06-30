@@ -12,6 +12,16 @@ FROM ghcr.io/open-webui/open-webui:main
 # (docker-compose.yml / docker run), y la imagen base ya la trae activada por defecto.
 ENV ENABLE_OPENAI_API="true" \
     OPENAI_API_BASE_URL="https://api.nan.builders/v1" \
+    ENABLE_IMAGE_GENERATION="true" \
+    IMAGE_GENERATION_ENGINE="openai" \
+    IMAGE_GENERATION_MODEL="flux-2-klein" \
+    IMAGE_SIZE="1024x1024" \
+    IMAGES_OPENAI_API_BASE_URL="https://api.nan.builders/v1" \
+    ENABLE_IMAGE_EDIT="true" \
+    IMAGE_EDIT_ENGINE="openai" \
+    IMAGE_EDIT_MODEL="flux-2-klein" \
+    IMAGE_EDIT_SIZE="1024x1024" \
+    IMAGES_EDIT_OPENAI_API_BASE_URL="https://api.nan.builders/v1" \
     ENABLE_OLLAMA_API="false" \
     WEBUI_NAME="NaN Chat"
 

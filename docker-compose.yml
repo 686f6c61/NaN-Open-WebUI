@@ -44,6 +44,21 @@ services:
       - RAG_OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
       - RAG_OPENAI_API_KEY=${NAN_API_KEY}
       - RAG_EMBEDDING_MODEL=qwen3-embedding
+      # --- Imagenes: generacion y edicion con 'flux-2-klein' de NaN ---
+      #     Usa la Images API OpenAI-compatible (/v1/images/generations y /v1/images/edits).
+      - ENABLE_IMAGE_GENERATION=${ENABLE_IMAGE_GENERATION:-true}
+      - IMAGE_GENERATION_ENGINE=openai
+      - IMAGE_GENERATION_MODEL=${IMAGE_GENERATION_MODEL:-flux-2-klein}
+      - IMAGE_SIZE=${IMAGE_SIZE:-1024x1024}
+      - IMAGES_OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
+      - IMAGES_OPENAI_API_KEY=${NAN_API_KEY}
+      - IMAGES_OPENAI_PARAMS=${IMAGES_OPENAI_PARAMS:-}
+      - ENABLE_IMAGE_EDIT=${ENABLE_IMAGE_EDIT:-true}
+      - IMAGE_EDIT_ENGINE=openai
+      - IMAGE_EDIT_MODEL=${IMAGE_EDIT_MODEL:-flux-2-klein}
+      - IMAGE_EDIT_SIZE=${IMAGE_EDIT_SIZE:-1024x1024}
+      - IMAGES_EDIT_OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
+      - IMAGES_EDIT_OPENAI_API_KEY=${NAN_API_KEY}
       # --- Interprete de codigo: el modelo escribe Python y se ejecuta en el navegador ---
       - ENABLE_CODE_INTERPRETER=true
       - CODE_INTERPRETER_ENGINE=pyodide

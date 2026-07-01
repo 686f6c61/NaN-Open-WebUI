@@ -2,6 +2,8 @@
 
 **Tu propio ChatGPT, con todos los modelos de NaN, corriendo en tu equipo y montado en 2 minutos.**
 
+Version actual: **v0.0.5**. Cambios: [CHANGELOG.md](CHANGELOG.md).
+
 Una interfaz web tipo ChatGPT ([Open WebUI](https://github.com/open-webui/open-webui))
 ya conectada a la API de [NaN](https://nan.builders). Self-hosted, en Docker, con tu
 propia API key. Tus chats y tus cuentas se quedan en tu máquina.
@@ -33,9 +35,9 @@ propia API key. Tus chats y tus cuentas se quedan en tu máquina.
 
 - **Open WebUI** (la UI self-hosted de referencia) preconfigurada para NaN.
 - **Modelos de NaN** disponibles desde el selector:
-  `qwen3.6`, `deepseek-v4-flash`, `mimo-v2.5`, `gemma4` (chat / visión / razonamiento),
-  `whisper` (audio -> texto), `kokoro` (texto -> voz), `qwen3-embedding` (embeddings)
-  y `flux-2-klein` (generación / edición de imágenes).
+  `qwen3.6`, `glm5.2`, `deepseek-v4-flash`, `mimo-v2.5`, `gemma4` (chat / visión /
+  razonamiento / coding agéntico), `whisper` (audio -> texto), `kokoro` (texto -> voz),
+  `qwen3-embedding` (embeddings) y `flux-2-klein` (generación / edición de imágenes).
 - **Capacidades**: chat con historial, **visión** (subir imágenes a los modelos
   multimodales), **búsqueda web** (incluye SearXNG autoalojado, sin API key: el modelo
   busca en internet y responde con fuentes), **voz** (lee las respuestas con `kokoro` de
@@ -82,14 +84,16 @@ Abre **http://localhost:3000**. La **primera cuenta que crees sera la de adminis
 
 ## Usar solo la imagen, sin clonar
 
-La imagen esta publicada en **GitHub Packages (GHCR)**, asi que puedes arrancarla con un
-solo comando (cambia `sk-tu-key-de-nan` por tu clave):
+Tambien puedes usar directamente la imagen oficial de Open WebUI en **GitHub Packages
+(GHCR)** con la configuracion de NaN por variables de entorno (cambia
+`sk-tu-key-de-nan` por tu clave):
 
 ```bash
 docker run -d --name nan-open-webui -p 3000:8080 \
   -e ENABLE_OPENAI_API=true \
   -e OPENAI_API_BASE_URL=https://api.nan.builders/v1 \
   -e OPENAI_API_KEY=sk-tu-key-de-nan \
+  -e 'OPENAI_API_CONFIGS={"0":{"enable":true,"model_ids":["qwen3.6","glm5.2","deepseek-v4-flash","mimo-v2.5","gemma4"]}}' \
   -e ENABLE_IMAGE_GENERATION=true \
   -e IMAGE_GENERATION_ENGINE=openai \
   -e IMAGE_GENERATION_MODEL=flux-2-klein \
@@ -104,10 +108,10 @@ docker run -d --name nan-open-webui -p 3000:8080 \
   -e IMAGES_EDIT_OPENAI_API_KEY=sk-tu-key-de-nan \
   -e WEBUI_AUTH=true \
   -v nan-open-webui-data:/app/backend/data \
-  ghcr.io/686f6c61/nan-open-webui:latest
+  ghcr.io/open-webui/open-webui:main
 ```
 
-Imagen: `ghcr.io/686f6c61/nan-open-webui:latest`
+Imagen: `ghcr.io/open-webui/open-webui:main`
 
 > Nota: este modo de un solo contenedor **no incluye la búsqueda web** (que necesita el
 > servicio SearXNG). Para tener búsqueda web, usa el `docker compose up -d` de arriba.
@@ -166,14 +170,23 @@ Quien la reciba solo necesita el `docker-compose.yml` + `.env.example` y su prop
 ## Comandos utiles
 
 ```bash
-docker compose up -d                            # arrancar / aplicar cambios
+docker compose up -d                            # arrancar / aplicar cambios y bajar updates
 docker compose logs -f                          # ver logs
 docker compose down                             # parar (conserva los datos)
-docker compose pull && docker compose up -d     # actualizar Open WebUI
+docker compose pull && docker compose up -d     # forzar actualizacion manual
 docker compose down -v                          # parar y BORRAR todos los datos
 ```
 
+Como el Compose usa `pull_policy: always`, cada `docker compose up -d` comprueba si hay
+imagen nueva de Open WebUI oficial / SearXNG y la usa.
 Los datos (cuentas, chats, ajustes) persisten en el volumen `nan-open-webui-data`.
+
+### Generar imagenes en Open WebUI
+
+En un chat, pulsa el boton **Integrations** junto a la caja de texto y activa **Image**
+(icono de foto). Escribe el prompt y envia. No selecciones `flux-2-klein` en el selector
+superior de modelos: el selector superior es para chat; la integracion **Image** usa
+`flux-2-klein` por debajo.
 
 ---
 
@@ -185,6 +198,8 @@ Los datos (cuentas, chats, ajustes) persisten en el volumen `nan-open-webui-data
 - **"Falta NAN_API_KEY"** al arrancar -> ejecuta `./setup.sh` y rellena el `.env`.
 - **Una imagen da "no soporta imagenes"** -> selecciona un modelo de **vision**
   (`qwen3.6`, `gemma4`, `mimo-v2.5`), no uno de solo texto como `deepseek-v4-flash`.
+- **`glm5.2` no procesa una imagen** -> es un modelo de **solo texto**, pensado para
+  coding agéntico, tool calling, razonamiento y contexto largo.
 - **Generar/editar imagenes falla** -> comprueba que tu cuenta de NaN tiene membresia
   `inference-tier`, que no has agotado la cuota de `flux-2-klein` (100 requests/mes),
   que no estas disparando mas de 1 request/s, y que `IMAGE_SIZE` usa valores soportados

@@ -7,9 +7,10 @@
 
 services:
   nan-open-webui:
-    # Imagen ya construida y publicada en GitHub Packages (GHCR): se descarga sola.
-    # Para construirla tu mismo en local, comenta la linea 'image' y descomenta 'build'.
-    image: ghcr.io/686f6c61/nan-open-webui:latest
+    # Usa la imagen oficial para montar siempre la ultima Open WebUI disponible.
+    # La preconfiguracion de NaN se inyecta abajo con variables de entorno.
+    image: ghcr.io/open-webui/open-webui:main
+    pull_policy: always
     # build: .
     container_name: nan-open-webui
     restart: unless-stopped
@@ -19,6 +20,8 @@ services:
       - OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
       # La API key NUNCA se escribe aqui: viene de .env. Si falta, compose para con un aviso claro.
       - OPENAI_API_KEY=${NAN_API_KEY:?Falta NAN_API_KEY -> copia .env.example a .env y pon tu key}
+      # Lista de modelos de chat visibles. Deja 'flux-2-klein' solo para la herramienta de imagenes.
+      - OPENAI_API_CONFIGS=${OPENAI_API_CONFIGS:-}
       # --- Sin modelos locales (solo NaN) ---
       - ENABLE_OLLAMA_API=false
       # --- Sesion e interfaz ---
@@ -75,9 +78,10 @@ services:
       - nan-open-webui-data:/app/backend/data
 
   # Metabuscador autoalojado para la busqueda web: gratis, privado, SIN API key.
-  # Genera su propio secreto aleatorio unico en el primer arranque.
+  # Usa un secret_key no predeterminado en searxng/settings.yml para arrancar sin error.
   searxng:
     image: searxng/searxng:latest
+    pull_policy: always
     container_name: nan-searxng
     restart: unless-stopped
     volumes:

@@ -3,7 +3,7 @@
 Sigue estos pasos en orden y no te equivocaras. No necesitas saber programar.
 Tiempo: unos 10-15 minutos la primera vez.
 
-Version actual: **v0.0.5**. Cambios: [CHANGELOG.md](CHANGELOG.md).
+Version actual: **v0.0.6**. Cambios: [CHANGELOG.md](CHANGELOG.md).
 
 > Que es Docker, en una frase: un programa que ejecuta esta app dentro de una "caja"
 > ya preparada, para que no tengas que instalar nada raro. Lo instalas una vez y ya.
@@ -125,6 +125,7 @@ Ya esta. Lo tienes funcionando.
 > **Generar imagenes:** en el chat, pulsa **Integrations** junto a la caja de texto y
 > activa **Image** (icono de foto). Escribe el prompt y envia. Viene configurado con
 > `flux-2-klein` de NaN por debajo; no lo elijas en el selector superior de chat.
+> Si arriba sigue seleccionado `qwen3.6`, esta bien: ese es el modelo de chat.
 
 ---
 
@@ -157,6 +158,7 @@ Tus chats y tu cuenta se guardan; no se pierden al apagar.
 | `port is already allocated` / puerto ocupado | El 3000 lo usa otra cosa | En el `.env` cambia `WEBUI_PORT=3000` por `WEBUI_PORT=3001` y entra en `http://localhost:3001` |
 | `docker: command not found` | Docker no esta instalado | Repite el Paso 1 |
 | Una **foto** da "no soporta imagenes" | Tienes un modelo de solo texto | Elige `qwen3.6`, `gemma4` o `mimo-v2.5` |
+| Pides una foto y responde texto / no sale imagen | No esta activa la integracion **Image** o el chat esta en tool calling nativo | Activa **Integrations > Image** y deja `DEFAULT_MODEL_PARAMS={"function_calling":"legacy"}` |
 | `glm5.2` no acepta imagenes | Es un modelo de solo texto/coding | Usa `glm5.2` para chat/codigo; para vision usa `qwen3.6`, `gemma4` o `mimo-v2.5` |
 | Generar imagenes falla | Falta acceso `inference-tier`, cuota, rate limit o tamaño valido | Revisa tu cuenta de NaN, espera unos segundos si has generado varias seguidas, y usa tamaños como `512x512` o `1024x1024` |
 

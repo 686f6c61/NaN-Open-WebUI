@@ -2,7 +2,7 @@
 
 **Tu propio ChatGPT, con todos los modelos de NaN, corriendo en tu equipo y montado en 2 minutos.**
 
-Version actual: **v0.0.5**. Cambios: [CHANGELOG.md](CHANGELOG.md).
+Version actual: **v0.0.6**. Cambios: [CHANGELOG.md](CHANGELOG.md).
 
 Una interfaz web tipo ChatGPT ([Open WebUI](https://github.com/open-webui/open-webui))
 ya conectada a la API de [NaN](https://nan.builders). Self-hosted, en Docker, con tu
@@ -94,7 +94,9 @@ docker run -d --name nan-open-webui -p 3000:8080 \
   -e OPENAI_API_BASE_URL=https://api.nan.builders/v1 \
   -e OPENAI_API_KEY=sk-tu-key-de-nan \
   -e 'OPENAI_API_CONFIGS={"0":{"enable":true,"model_ids":["qwen3.6","glm5.2","deepseek-v4-flash","mimo-v2.5","gemma4"]}}' \
+  -e 'DEFAULT_MODEL_PARAMS={"function_calling":"legacy"}' \
   -e ENABLE_IMAGE_GENERATION=true \
+  -e ENABLE_IMAGE_PROMPT_GENERATION=false \
   -e IMAGE_GENERATION_ENGINE=openai \
   -e IMAGE_GENERATION_MODEL=flux-2-klein \
   -e IMAGE_SIZE=1024x1024 \
@@ -128,7 +130,9 @@ Imagen: `ghcr.io/open-webui/open-webui:main`
 | `WEBUI_NAME` | No | `NaN Chat` | Nombre mostrado en la UI |
 | `ENABLE_SIGNUP` | No | `true` | Permitir nuevos registros |
 | `OPENAI_API_BASE_URL` | No | `https://api.nan.builders/v1` | Endpoint OpenAI-compatible |
+| `DEFAULT_MODEL_PARAMS` | No | `{"function_calling":"legacy"}` | Fuerza herramientas legacy para que **Image** funcione con modelos sin tool calling nativo declarado |
 | `ENABLE_IMAGE_GENERATION` | No | `true` | Activar generación de imágenes |
+| `ENABLE_IMAGE_PROMPT_GENERATION` | No | `false` | Evita reescribir el prompt con el modelo de chat antes de llamar a `flux-2-klein` |
 | `ENABLE_IMAGE_EDIT` | No | `true` | Activar edición / image-to-image |
 | `IMAGE_GENERATION_MODEL` | No | `flux-2-klein` | Modelo de imágenes de NaN |
 | `IMAGE_SIZE` | No | `1024x1024` | Tamaño por defecto; múltiplos de 16, 256-1536 px y ratio 1:3-3:1 |
@@ -186,7 +190,7 @@ Los datos (cuentas, chats, ajustes) persisten en el volumen `nan-open-webui-data
 En un chat, pulsa el boton **Integrations** junto a la caja de texto y activa **Image**
 (icono de foto). Escribe el prompt y envia. No selecciones `flux-2-klein` en el selector
 superior de modelos: el selector superior es para chat; la integracion **Image** usa
-`flux-2-klein` por debajo.
+`flux-2-klein` por debajo. Que arriba siga seleccionado `qwen3.6` es normal.
 
 ---
 
@@ -198,6 +202,9 @@ superior de modelos: el selector superior es para chat; la integracion **Image**
 - **"Falta NAN_API_KEY"** al arrancar -> ejecuta `./setup.sh` y rellena el `.env`.
 - **Una imagen da "no soporta imagenes"** -> selecciona un modelo de **vision**
   (`qwen3.6`, `gemma4`, `mimo-v2.5`), no uno de solo texto como `deepseek-v4-flash`.
+- **Pides una foto y responde texto / no adjunta imagen** -> no esta activa la
+  integracion **Image** o el chat esta en tool calling nativo. Activa **Integrations >
+  Image** y deja `DEFAULT_MODEL_PARAMS={"function_calling":"legacy"}`.
 - **`glm5.2` no procesa una imagen** -> es un modelo de **solo texto**, pensado para
   coding agéntico, tool calling, razonamiento y contexto largo.
 - **Generar/editar imagenes falla** -> comprueba que tu cuenta de NaN tiene membresia

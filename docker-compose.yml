@@ -22,6 +22,8 @@ services:
       - OPENAI_API_KEY=${NAN_API_KEY:?Falta NAN_API_KEY -> copia .env.example a .env y pon tu key}
       # Lista de modelos de chat visibles. Deja 'flux-2-klein' solo para la herramienta de imagenes.
       - OPENAI_API_CONFIGS=${OPENAI_API_CONFIGS:-}
+      # Fuerza herramientas legacy para que Imagen dispare flux-2-klein aunque el chat no declare tool calling.
+      - DEFAULT_MODEL_PARAMS=${DEFAULT_MODEL_PARAMS:-{"function_calling":"legacy"}}
       # --- Sin modelos locales (solo NaN) ---
       - ENABLE_OLLAMA_API=false
       # --- Sesion e interfaz ---
@@ -50,6 +52,7 @@ services:
       # --- Imagenes: generacion y edicion con 'flux-2-klein' de NaN ---
       #     Usa la Images API OpenAI-compatible (/v1/images/generations y /v1/images/edits).
       - ENABLE_IMAGE_GENERATION=${ENABLE_IMAGE_GENERATION:-true}
+      - ENABLE_IMAGE_PROMPT_GENERATION=${ENABLE_IMAGE_PROMPT_GENERATION:-false}
       - IMAGE_GENERATION_ENGINE=openai
       - IMAGE_GENERATION_MODEL=${IMAGE_GENERATION_MODEL:-flux-2-klein}
       - IMAGE_SIZE=${IMAGE_SIZE:-1024x1024}

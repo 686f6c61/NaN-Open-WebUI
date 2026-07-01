@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.6 - 2026-07-01
+
+- Fuerza `DEFAULT_MODEL_PARAMS={"function_calling":"legacy"}` para que la herramienta **Image** dispare `flux-2-klein` aunque el modelo de chat seleccionado no declare tool calling nativo.
+- Desactiva `ENABLE_IMAGE_PROMPT_GENERATION` por defecto para evitar que Open WebUI se quede reescribiendo el prompt con `qwen3.6` antes de generar la imagen.
+- Documenta que el selector superior puede seguir en `qwen3.6`; la generacion real sale por la integracion **Image**.
+
 ## v0.0.5 - 2026-07-01
 
 - Usa la imagen oficial `ghcr.io/open-webui/open-webui:main` en Docker Compose para recibir la ultima Open WebUI con `docker compose up -d`.

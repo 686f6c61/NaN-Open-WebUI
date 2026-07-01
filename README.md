@@ -126,7 +126,7 @@ Imagen: `ghcr.io/open-webui/open-webui:main`
 |---|---|---|---|
 | `NAN_API_KEY` | **Si** | — | Tu API key de NaN |
 | `WEBUI_SECRET_KEY` | Recomendado | (se genera) | Firma las sesiones de la web |
-| `SEARXNG_SECRET` | Recomendado | (se genera) | Secreto local de SearXNG para la busqueda web |
+| `SEARXNG_SECRET` | **Si** | (se genera) | Secreto local de SearXNG para la busqueda web |
 | `WEBUI_PORT` | No | `3000` | Puerto local de la interfaz |
 | `WEBUI_NAME` | No | `NaN Chat` | Nombre mostrado en la UI |
 | `ENABLE_SIGNUP` | No | `true` | Permitir nuevos registros |

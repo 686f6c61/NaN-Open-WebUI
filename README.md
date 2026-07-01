@@ -2,7 +2,7 @@
 
 **Tu propio ChatGPT, con todos los modelos de NaN, corriendo en tu equipo y montado en 2 minutos.**
 
-Version actual: **v0.0.6**. Cambios: [CHANGELOG.md](CHANGELOG.md).
+Version actual: **v0.0.7**. Cambios: [CHANGELOG.md](CHANGELOG.md).
 
 Una interfaz web tipo ChatGPT ([Open WebUI](https://github.com/open-webui/open-webui))
 ya conectada a la API de [NaN](https://nan.builders). Self-hosted, en Docker, con tu

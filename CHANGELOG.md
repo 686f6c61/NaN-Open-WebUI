@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.0.7 - 2026-07-01
 
 - Elimina el `secret_key` compartido de SearXNG del repo.
 - Pasa `SEARXNG_SECRET` desde `.env` y lo genera automaticamente con `./setup.sh`.

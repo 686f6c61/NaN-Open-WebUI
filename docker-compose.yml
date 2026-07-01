@@ -81,12 +81,14 @@ services:
       - nan-open-webui-data:/app/backend/data
 
   # Metabuscador autoalojado para la busqueda web: gratis, privado, SIN API key.
-  # Usa un secret_key no predeterminado en searxng/settings.yml para arrancar sin error.
+  # Usa SEARXNG_SECRET desde .env para no versionar secretos compartidos.
   searxng:
     image: searxng/searxng:latest
     pull_policy: always
     container_name: nan-searxng
     restart: unless-stopped
+    environment:
+      - "SEARXNG_SECRET=${SEARXNG_SECRET:?Falta SEARXNG_SECRET -> ejecuta ./setup.sh o anadela al .env}"
     volumes:
       - ./searxng:/etc/searxng:rw
 

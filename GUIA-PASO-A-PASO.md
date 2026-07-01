@@ -78,8 +78,8 @@ Hay que crear un archivo llamado `.env` con tu clave dentro. Elige tu sistema:
    ```bash
    ./setup.sh
    ```
-3. Te creara el `.env`. Ahora abrelo y pon tu clave en la linea `NAN_API_KEY=`
-   (con cualquier editor de texto), y guarda.
+3. Te creara el `.env` y generara los secretos locales. Ahora abrelo y pon tu clave en
+   la linea `NAN_API_KEY=` (con cualquier editor de texto), y guarda.
 
 > Reglas para no fallar con el `.env`:
 > - El archivo se llama **`.env`** exacto (con el punto delante, sin `.txt` al final).
@@ -153,6 +153,7 @@ Tus chats y tu cuenta se guardan; no se pierden al apagar.
 | Lo que ves | Que pasa | Como se arregla |
 |---|---|---|
 | `Falta NAN_API_KEY` | No creaste el `.env` o no tiene la clave | Repite el Paso 4 con cuidado |
+| `Falta SEARXNG_SECRET` | Tu `.env` es antiguo o lo copiaste sin generar secretos | Ejecuta `./setup.sh` o rellena `SEARXNG_SECRET` con `openssl rand -hex 32` |
 | La web no carga / "no se puede conectar" | Docker Desktop esta cerrado | Abrelo y espera a que la ballena se quede fija |
 | Entras pero **no hay modelos** | La clave esta mal escrita o caducada | Revisa el `.env` (sin comillas ni espacios) y vuelve a `docker compose up -d` |
 | `port is already allocated` / puerto ocupado | El 3000 lo usa otra cosa | En el `.env` cambia `WEBUI_PORT=3000` por `WEBUI_PORT=3001` y entra en `http://localhost:3001` |

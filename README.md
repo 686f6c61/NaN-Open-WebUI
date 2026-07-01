@@ -64,7 +64,7 @@ propia API key. Tus chats y tus cuentas se quedan en tu máquina.
 git clone https://github.com/686f6c61/NaN-Open-WebUI.git
 cd NaN-Open-WebUI
 
-# 1) Crea tu .env (genera tambien la clave secreta de sesion)
+# 1) Crea tu .env (genera tambien los secretos locales)
 ./setup.sh
 
 # 2) Edita .env y pon tu API key en NAN_API_KEY
@@ -77,7 +77,7 @@ docker compose up -d
 Abre **http://localhost:3000**. La **primera cuenta que crees sera la de administrador**.
 
 > Windows/Mac sin `./setup.sh`: copia `.env.example` a `.env`, pon tu `NAN_API_KEY` y
-> (recomendado) genera una `WEBUI_SECRET_KEY` con `openssl rand -hex 32`. Luego
+> genera `WEBUI_SECRET_KEY` y `SEARXNG_SECRET` con `openssl rand -hex 32`. Luego
 > `docker compose up -d`.
 
 ---
@@ -126,6 +126,7 @@ Imagen: `ghcr.io/open-webui/open-webui:main`
 |---|---|---|---|
 | `NAN_API_KEY` | **Si** | — | Tu API key de NaN |
 | `WEBUI_SECRET_KEY` | Recomendado | (se genera) | Firma las sesiones de la web |
+| `SEARXNG_SECRET` | Recomendado | (se genera) | Secreto local de SearXNG para la busqueda web |
 | `WEBUI_PORT` | No | `3000` | Puerto local de la interfaz |
 | `WEBUI_NAME` | No | `NaN Chat` | Nombre mostrado en la UI |
 | `ENABLE_SIGNUP` | No | `true` | Permitir nuevos registros |
@@ -147,6 +148,8 @@ Tras crear tu cuenta admin, si no quieres mas registros pon `ENABLE_SIGNUP=false
 
 - La key vive **solo en tu `.env` local**. No esta en la imagen Docker, ni en el
   `docker-compose.yml`, ni en el repositorio.
+- Los secretos internos (`WEBUI_SECRET_KEY` y `SEARXNG_SECRET`) tambien se generan en
+  `.env`; el repo no comparte valores reales entre instalaciones.
 - El `.gitignore` excluye `.env`: **no lo subes a git por error**.
 - Si arrancas sin key, Compose **se detiene con un aviso claro** en vez de arrancar mal.
 - **No compartas tu `.env`.** Para pasarle esto a otra persona, dale el proyecto **sin el

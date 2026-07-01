@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Elimina el `secret_key` compartido de SearXNG del repo.
+- Pasa `SEARXNG_SECRET` desde `.env` y lo genera automaticamente con `./setup.sh`.
+- Hace que `./setup.sh` complete secretos faltantes en instalaciones existentes sin tocar `NAN_API_KEY`.
+
 ## v0.0.6 - 2026-07-01
 
 - Fuerza `DEFAULT_MODEL_PARAMS={"function_calling":"legacy"}` para que la herramienta **Image** dispare `flux-2-klein` aunque el modelo de chat seleccionado no declare tool calling nativo.

@@ -12,7 +12,7 @@ services:
     # en runtime desde .env. Va fijada por tag para que actualizar sea una
     # decision deliberada (cambia OPENWEBUI_IMAGE en .env); asi un reinicio
     # normal nunca trae una version nueva con migraciones de datos.
-    image: ${OPENWEBUI_IMAGE:-ghcr.io/686f6c61/nan-open-webui:v0.0.8}
+    image: ${OPENWEBUI_IMAGE:-ghcr.io/686f6c61/nan-open-webui:v0.0.9}
     container_name: nan-open-webui
     restart: unless-stopped
     environment:

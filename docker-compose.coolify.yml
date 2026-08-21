@@ -12,7 +12,7 @@
 
 services:
   nan-open-webui:
-    image: ${OPENWEBUI_IMAGE:-ghcr.io/686f6c61/nan-open-webui:v0.0.8}
+    image: ${OPENWEBUI_IMAGE:-ghcr.io/686f6c61/nan-open-webui:v0.0.9}
     restart: unless-stopped
     environment:
       # --- Conexion a NaN (OpenAI-compatible) ---

@@ -3,7 +3,7 @@
 Sigue estos pasos en orden y no te equivocaras. No necesitas saber programar.
 Tiempo: unos 10-15 minutos la primera vez.
 
-Version actual: **v0.0.7**. Cambios: [CHANGELOG.md](CHANGELOG.md).
+Version actual: **v0.0.8**. Cambios: [CHANGELOG.md](CHANGELOG.md).
 
 > Que es Docker, en una frase: un programa que ejecuta esta app dentro de una "caja"
 > ya preparada, para que no tengas que instalar nada raro. Lo instalas una vez y ya.
@@ -113,9 +113,15 @@ Hay que crear un archivo llamado `.env` con tu clave dentro. Elige tu sistema:
 2. La primera vez te pedira crear una cuenta. La **primera cuenta es la de
    administrador** (la tuya). Pon tu email y una contraseña y entra.
 3. Arriba a la izquierda elige un modelo (por ejemplo `qwen3.6`) y a chatear. Para
-   programacion o tareas largas con herramientas, prueba `glm5.2`.
+   programacion o tareas de codigo, prueba `mimo-v2.5` o `qwen3.6`.
 
 Ya esta. Lo tienes funcionando.
+
+> **Otras personas de tu casa o equipo:** pueden entrar desde su navegador y
+> registrarse con su email. Con la configuracion por defecto, su cuenta queda
+> **en espera** hasta que tu la apruebes: Panel de administracion > Users.
+> Cuando ya este todo el mundo, cierra el registro poniendo `ENABLE_SIGNUP=false`
+> en el `.env` y volviendo a hacer `docker compose up -d`.
 
 > **Buscar en internet:** en la caja del chat, activa el interruptor **Búsqueda web**
 > (el icono del globo) y pregunta lo que quieras. El modelo buscara en internet y te
@@ -160,8 +166,8 @@ Tus chats y tu cuenta se guardan; no se pierden al apagar.
 | `docker: command not found` | Docker no esta instalado | Repite el Paso 1 |
 | Una **foto** da "no soporta imagenes" | Tienes un modelo de solo texto | Elige `qwen3.6`, `gemma4` o `mimo-v2.5` |
 | Pides una foto y responde texto / no sale imagen | No esta activa la integracion **Image** o el chat esta en tool calling nativo | Activa **Integrations > Image** y deja `DEFAULT_MODEL_PARAMS={"function_calling":"legacy"}` |
-| `glm5.2` no acepta imagenes | Es un modelo de solo texto/coding | Usa `glm5.2` para chat/codigo; para vision usa `qwen3.6`, `gemma4` o `mimo-v2.5` |
 | Generar imagenes falla | Falta acceso `inference-tier`, cuota, rate limit o tamaño valido | Revisa tu cuenta de NaN, espera unos segundos si has generado varias seguidas, y usa tamaños como `512x512` o `1024x1024` |
+| No puedo entrar desde otro equipo de casa | La web escucha solo en tu equipo por defecto | Pon `WEBUI_BIND=0.0.0.0` en el `.env` y entra con `http://IP-de-tu-equipo:3000` |
 
 > Tras cualquier cambio en el `.env`, vuelve a ejecutar `docker compose up -d` para que
 > se aplique.

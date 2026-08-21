@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.0.8 - 2026-08-21
+
+- Retira `glm5.2` del catalogo configurado: NaN ya no lo sirve (verificado contra
+  `/v1/models`). Quedan como modelos de chat: `qwen3.6`, `deepseek-v4-flash`,
+  `mimo-v2.5`, `gemma4`.
+- El Compose pasa a usar la imagen propia publicada en GHCR
+  (`ghcr.io/686f6c61/nan-open-webui:vX.Y.Z`) en vez de `open-webui:main` con
+  `pull_policy: always`: actualizar Open WebUI es ahora una decision deliberada
+  (cambiar `OPENWEBUI_IMAGE` en el `.env`), no algo que pasa en cualquier reinicio.
+- Seguro por defecto: el puerto se publica en `127.0.0.1` (antes `0.0.0.0`); nuevo
+  `WEBUI_BIND=0.0.0.0` en el `.env` para compartirlo en red local.
+- Multiusuario: `DEFAULT_USER_ROLE=pending` (los registros nuevos requieren
+  aprobacion de un admin) y `BYPASS_MODEL_ACCESS_CONTROL=false` por defecto (se
+  respeta el control de modelos por grupo).
+- Documenta la configuracion persistente de Open WebUI y anade
+  `ENABLE_PERSISTENT_CONFIG` al `.env` (el panel de admin manda sobre el `.env`;
+  con `false`, el `.env` manda siempre).
+- Compose: healthcheck de SearXNG con `depends_on: condition: service_healthy`,
+  rotacion de logs y limites de memoria. Nuevos passthroughs `WEBUI_URL` y
+  `CORS_ALLOW_ORIGIN`.
+- Nueva guia [PRODUCCION.md](PRODUCCION.md): proxy inverso con HTTPS, backups y
+  restauracion, actualizaciones, checklist y runbook de rotacion de la API key.
+- README: la seccion "usar sin clonar" pasa a usar la imagen propia (mucho mas
+  corta, sin duplicar la configuracion) y se reordena la documentacion de
+  multiusuario.
+
 ## v0.0.7 - 2026-07-01
 
 - Elimina el `secret_key` compartido de SearXNG del repo.

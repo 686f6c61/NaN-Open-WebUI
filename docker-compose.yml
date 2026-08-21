@@ -7,11 +7,12 @@
 
 services:
   nan-open-webui:
-    # Usa la imagen oficial para montar siempre la ultima Open WebUI disponible.
-    # La preconfiguracion de NaN se inyecta abajo con variables de entorno.
-    image: ghcr.io/open-webui/open-webui:main
-    pull_policy: always
-    # build: .
+    # Imagen de Open WebUI preconfigurada para NaN, publicada en GHCR.
+    # Es publica y NO contiene ningun secreto: la API key se inyecta solo
+    # en runtime desde .env. Va fijada por tag para que actualizar sea una
+    # decision deliberada (cambia OPENWEBUI_IMAGE en .env); asi un reinicio
+    # normal nunca trae una version nueva con migraciones de datos.
+    image: ${OPENWEBUI_IMAGE:-ghcr.io/686f6c61/nan-open-webui:v0.0.8}
     container_name: nan-open-webui
     restart: unless-stopped
     environment:
@@ -21,18 +22,30 @@ services:
       # La API key NUNCA se escribe aqui: viene de .env. Si falta, compose para con un aviso claro.
       - OPENAI_API_KEY=${NAN_API_KEY:?Falta NAN_API_KEY -> copia .env.example a .env y pon tu key}
       # Lista de modelos de chat visibles. Deja 'flux-2-klein' solo para la herramienta de imagenes.
-      - OPENAI_API_CONFIGS=${OPENAI_API_CONFIGS:-}
-      # Fuerza herramientas legacy para que Imagen dispare flux-2-klein aunque el chat no declare tool calling.
-      - DEFAULT_MODEL_PARAMS=${DEFAULT_MODEL_PARAMS:-{"function_calling":"legacy"}}
+      - 'OPENAI_API_CONFIGS=${OPENAI_API_CONFIGS:-}'
+      # Fuerza herramientas legacy para que Imagen dispare flux-2-klein aunque
+      # el chat no declare tool calling nativo (valor por defecto en .env.example).
+      - 'DEFAULT_MODEL_PARAMS=${DEFAULT_MODEL_PARAMS:-}'
       # --- Sin modelos locales (solo NaN) ---
       - ENABLE_OLLAMA_API=false
       # --- Sesion e interfaz ---
       - WEBUI_AUTH=true
       - WEBUI_NAME=${WEBUI_NAME:-NaN Chat}
       - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-}
+      # URL publica y CORS, relevantes solo detras de un proxy con dominio (PRODUCCION.md)
+      - WEBUI_URL=${WEBUI_URL:-}
+      - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN:-*}
+      # --- Multiusuario ---
+      # Registro abierto o cerrado. La primera cuenta creada es siempre la de admin.
       - ENABLE_SIGNUP=${ENABLE_SIGNUP:-true}
-      # Que todos los usuarios de tu servidor vean todos los modelos de NaN
-      - BYPASS_MODEL_ACCESS_CONTROL=${BYPASS_MODEL_ACCESS_CONTROL:-true}
+      # Los registros nuevos quedan 'pending' hasta que un admin los aprueba.
+      - DEFAULT_USER_ROLE=${DEFAULT_USER_ROLE:-pending}
+      # Respeta el control de acceso a modelos por grupo (un admin puede
+      # restringir modelos concretos a grupos concretos).
+      - BYPASS_MODEL_ACCESS_CONTROL=${BYPASS_MODEL_ACCESS_CONTROL:-false}
+      # Config persistente: lo cambiado en el panel de admin manda sobre el .env.
+      # 'false' hace que el .env sea siempre la fuente de verdad.
+      - ENABLE_PERSISTENT_CONFIG=${ENABLE_PERSISTENT_CONFIG:-true}
       # --- Busqueda web (via SearXNG, sin API key). Ponlo en 'false' para desactivarla ---
       - ENABLE_WEB_SEARCH=${ENABLE_WEB_SEARCH:-true}
       - WEB_SEARCH_ENGINE=searxng
@@ -58,7 +71,7 @@ services:
       - IMAGE_SIZE=${IMAGE_SIZE:-1024x1024}
       - IMAGES_OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
       - IMAGES_OPENAI_API_KEY=${NAN_API_KEY}
-      - IMAGES_OPENAI_PARAMS=${IMAGES_OPENAI_PARAMS:-}
+      - 'IMAGES_OPENAI_PARAMS=${IMAGES_OPENAI_PARAMS:-}'
       - ENABLE_IMAGE_EDIT=${ENABLE_IMAGE_EDIT:-true}
       - IMAGE_EDIT_ENGINE=openai
       - IMAGE_EDIT_MODEL=${IMAGE_EDIT_MODEL:-flux-2-klein}
@@ -73,24 +86,52 @@ services:
       - ENABLE_AUTOCOMPLETE_GENERATION=true
       - TASK_MODEL_EXTERNAL=${TASK_MODEL_EXTERNAL:-deepseek-v4-flash}
     depends_on:
-      - searxng
+      searxng:
+        condition: service_healthy
     ports:
-      - "${WEBUI_PORT:-3000}:8080"
+      # Solo accesible desde el propio equipo por defecto. Para compartir en tu
+      # red local: WEBUI_BIND=0.0.0.0 en .env. Para internet: proxy con HTTPS.
+      - "${WEBUI_BIND:-127.0.0.1}:${WEBUI_PORT:-3000}:8080"
     volumes:
       # Datos persistentes (cuentas, chats, ajustes). Sobrevive a reinicios y updates.
       - nan-open-webui-data:/app/backend/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 4g
 
   # Metabuscador autoalojado para la busqueda web: gratis, privado, SIN API key.
   # Usa SEARXNG_SECRET desde .env para no versionar secretos compartidos.
+  # No publica puertos: solo es alcanzable desde la red interna de compose.
   searxng:
     image: searxng/searxng:latest
     pull_policy: always
     container_name: nan-searxng
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     environment:
       - "SEARXNG_SECRET=${SEARXNG_SECRET:?Falta SEARXNG_SECRET -> ejecuta ./setup.sh o anadela al .env}"
     volumes:
       - ./searxng:/etc/searxng:rw
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 1g
 
 volumes:
   nan-open-webui-data:

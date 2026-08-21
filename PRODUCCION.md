@@ -98,6 +98,9 @@ server {
 > Si tu plataforma ya monta el proxy (Coolify, Traefik, Dokploy...), simplemente
 > despliega el compose tal cual y apunta el proxy interno al puerto 3000 del
 > contenedor; mantén `WEBUI_URL` y `CORS_ALLOW_ORIGIN` con tu dominio.
+> Este repo incluye **`docker-compose.coolify.yml`**, una variante lista para
+> Coolify (sin puertos publicados, `expose` interno, sin nombres fijos):
+> despliega esa si tu hosting es Coolify.
 
 Abre `https://chat.tudominio.com`, **crea tu cuenta admin** (la primera) y a
 continuacion cierra o controla el registro:

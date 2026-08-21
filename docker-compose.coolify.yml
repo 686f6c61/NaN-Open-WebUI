@@ -1,0 +1,118 @@
+# nan-open-webui — variante para hosting gestionado con Coolify + Traefik.
+#
+# Diferencias con docker-compose.yml (uso local):
+#   - Sin `ports:` — el proxy inverso de Coolify (Traefik) publica el dominio;
+#     el servicio solo expone 8080 dentro de la red interna. Nunca se publica
+#     el puerto directamente en el host.
+#   - Sin `container_name` ni nombre de volumen fijo — los gestiona Coolify.
+#   - Toda la configuracion (key, secretos, modelos) llega por las variables
+#     de entorno definidas en el panel de la aplicacion.
+# El resto es identico al compose local: SearXNG interno, healthchecks,
+# arranque ordenado, rotacion de logs y limites de memoria.
+
+services:
+  nan-open-webui:
+    image: ${OPENWEBUI_IMAGE:-ghcr.io/686f6c61/nan-open-webui:v0.0.8}
+    restart: unless-stopped
+    environment:
+      # --- Conexion a NaN (OpenAI-compatible) ---
+      - ENABLE_OPENAI_API=true
+      - OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
+      # La API key nunca esta en el repo: se define como variable en el panel.
+      - OPENAI_API_KEY=${NAN_API_KEY}
+      - 'OPENAI_API_CONFIGS=${OPENAI_API_CONFIGS:-}'
+      - 'DEFAULT_MODEL_PARAMS=${DEFAULT_MODEL_PARAMS:-}'
+      # --- Sin modelos locales (solo NaN) ---
+      - ENABLE_OLLAMA_API=false
+      # --- Sesion e interfaz ---
+      - WEBUI_AUTH=true
+      - WEBUI_NAME=${WEBUI_NAME:-NaN Chat}
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
+      - WEBUI_URL=${WEBUI_URL:-}
+      - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN:-*}
+      # --- Multiusuario ---
+      - ENABLE_SIGNUP=${ENABLE_SIGNUP:-true}
+      - DEFAULT_USER_ROLE=${DEFAULT_USER_ROLE:-pending}
+      - BYPASS_MODEL_ACCESS_CONTROL=${BYPASS_MODEL_ACCESS_CONTROL:-false}
+      - ENABLE_PERSISTENT_CONFIG=${ENABLE_PERSISTENT_CONFIG:-true}
+      # --- Busqueda web (via SearXNG, sin API key) ---
+      - ENABLE_WEB_SEARCH=${ENABLE_WEB_SEARCH:-true}
+      - WEB_SEARCH_ENGINE=searxng
+      - SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>
+      # --- Voz: salida hablada con 'kokoro' de NaN; dictado con whisper local ---
+      - AUDIO_TTS_ENGINE=openai
+      - AUDIO_TTS_OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
+      - AUDIO_TTS_OPENAI_API_KEY=${NAN_API_KEY}
+      - AUDIO_TTS_MODEL=kokoro
+      - AUDIO_TTS_VOICE=${AUDIO_TTS_VOICE:-af_sky}
+      # --- Embeddings del RAG con 'qwen3-embedding' de NaN ---
+      - RAG_EMBEDDING_ENGINE=openai
+      - RAG_OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
+      - RAG_OPENAI_API_KEY=${NAN_API_KEY}
+      - RAG_EMBEDDING_MODEL=qwen3-embedding
+      # --- Imagenes: generacion y edicion con 'flux-2-klein' de NaN ---
+      - ENABLE_IMAGE_GENERATION=${ENABLE_IMAGE_GENERATION:-true}
+      - ENABLE_IMAGE_PROMPT_GENERATION=${ENABLE_IMAGE_PROMPT_GENERATION:-false}
+      - IMAGE_GENERATION_ENGINE=openai
+      - IMAGE_GENERATION_MODEL=${IMAGE_GENERATION_MODEL:-flux-2-klein}
+      - IMAGE_SIZE=${IMAGE_SIZE:-1024x1024}
+      - IMAGES_OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
+      - IMAGES_OPENAI_API_KEY=${NAN_API_KEY}
+      - 'IMAGES_OPENAI_PARAMS=${IMAGES_OPENAI_PARAMS:-}'
+      - ENABLE_IMAGE_EDIT=${ENABLE_IMAGE_EDIT:-true}
+      - IMAGE_EDIT_ENGINE=openai
+      - IMAGE_EDIT_MODEL=${IMAGE_EDIT_MODEL:-flux-2-klein}
+      - IMAGE_EDIT_SIZE=${IMAGE_EDIT_SIZE:-1024x1024}
+      - IMAGES_EDIT_OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
+      - IMAGES_EDIT_OPENAI_API_KEY=${NAN_API_KEY}
+      # --- Interprete de codigo en el navegador (pyodide) ---
+      - ENABLE_CODE_INTERPRETER=true
+      - CODE_INTERPRETER_ENGINE=pyodide
+      - ENABLE_CODE_EXECUTION=true
+      # --- Tareas internas con un modelo rapido ---
+      - ENABLE_AUTOCOMPLETE_GENERATION=true
+      - TASK_MODEL_EXTERNAL=${TASK_MODEL_EXTERNAL:-deepseek-v4-flash}
+    expose:
+      - "8080"
+    depends_on:
+      searxng:
+        condition: service_healthy
+    volumes:
+      - nan-open-webui-data:/app/backend/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+
+  # Metabuscador interno para la busqueda web: sin puertos publicados, solo
+  # alcanzable desde la red de compose. El secreto viene del panel.
+  searxng:
+    image: searxng/searxng:latest
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    environment:
+      - SEARXNG_SECRET=${SEARXNG_SECRET}
+    volumes:
+      - ./searxng:/etc/searxng:rw
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+volumes:
+  nan-open-webui-data:

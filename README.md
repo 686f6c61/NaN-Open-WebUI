@@ -2,7 +2,7 @@
 
 **Tu propio ChatGPT, con todos los modelos de NaN, corriendo en tu equipo y montado en 2 minutos.**
 
-Version actual: **v0.0.8**. Cambios: [CHANGELOG.md](CHANGELOG.md).
+Version actual: **v0.0.9**. Cambios: [CHANGELOG.md](CHANGELOG.md).
 
 Una interfaz web tipo ChatGPT ([Open WebUI](https://github.com/open-webui/open-webui))
 ya conectada a la API de [NaN](https://nan.builders). Self-hosted, en Docker, con tu
@@ -96,7 +96,7 @@ docker run -d --name nan-open-webui -p 127.0.0.1:3000:8080 \
   -e WEBUI_SECRET_KEY=$(openssl rand -hex 32) \
   -e ENABLE_WEB_SEARCH=false \
   -v nan-open-webui-data:/app/backend/data \
-  ghcr.io/686f6c61/nan-open-webui:v0.0.8
+  ghcr.io/686f6c61/nan-open-webui:v0.0.9
 ```
 
 Imagen: `ghcr.io/686f6c61/nan-open-webui` (tags `vX.Y.Z` y `latest`).
@@ -141,7 +141,7 @@ Para exponerlo en internet con HTTPS, backups y actualizaciones controladas, sig
 | `NAN_API_KEY` | **Si** | — | Tu API key de NaN |
 | `WEBUI_SECRET_KEY` | Recomendado | (se genera) | Firma las sesiones de la web |
 | `SEARXNG_SECRET` | **Si** | (se genera) | Secreto local de SearXNG para la busqueda web |
-| `OPENWEBUI_IMAGE` | No | `ghcr.io/686f6c61/nan-open-webui:v0.0.8` | Imagen y tag a usar; sube el tag para actualizar |
+| `OPENWEBUI_IMAGE` | No | `ghcr.io/686f6c61/nan-open-webui:v0.0.9` | Imagen y tag a usar; sube el tag para actualizar |
 | `WEBUI_BIND` | No | `127.0.0.1` | Interfaz donde se publica; `0.0.0.0` para red local |
 | `WEBUI_PORT` | No | `3000` | Puerto local de la interfaz |
 | `WEBUI_NAME` | No | `NaN Chat` | Nombre mostrado en la UI |

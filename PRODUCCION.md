@@ -43,7 +43,7 @@ Edita el `.env` de produccion. Valores recomendados:
 
 ```ini
 NAN_API_KEY=sk-tu-key-de-nan
-OPENWEBUI_IMAGE=ghcr.io/686f6c61/nan-open-webui:v0.0.8   # tag fijo, NUNCA latest
+OPENWEBUI_IMAGE=ghcr.io/686f6c61/nan-open-webui:v0.0.9   # tag fijo, NUNCA latest
 WEBUI_BIND=127.0.0.1                                      # solo el proxy llega
 WEBUI_PORT=3000
 WEBUI_SECRET_KEY=(generado por setup.sh)

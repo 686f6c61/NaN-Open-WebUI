@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.0.9 - 2026-08-21
+
+- Nueva variante **`docker-compose.coolify.yml`** para hosting gestionado con
+  Coolify/Traefik: sin `ports` publicados (`expose` interno tras el proxy), sin
+  `container_name` ni volumen de nombre fijo, y toda la configuracion por
+  variables del panel. Documentada en PRODUCCION.md.
+- Añade **Open Terminal** (ghcr.io/open-webui/open-terminal) como tercer
+  servicio en la variante Coolify: interno (sin dominio ni puertos), API key
+  por variable de entorno del panel, volumen persistente propio y limites de
+  memoria. Es una shell real: restringir su uso a admins/grupos de confianza.
+- Documenta el matiz de bind mounts en Coolify: los ficheros del repo no se
+  persisten en el directorio de la app, asi que `searxng/settings.yml` debe
+  copiarse a mano una vez (sin el, la busqueda web falla con 403).
+- Actualiza referencias de version e imagen por defecto a v0.0.9.
+
 ## v0.0.8 - 2026-08-21
 
 - Retira `glm5.2` del catalogo configurado: NaN ya no lo sirve (verificado contra

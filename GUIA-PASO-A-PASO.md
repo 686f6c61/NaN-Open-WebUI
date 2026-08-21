@@ -3,7 +3,7 @@
 Sigue estos pasos en orden y no te equivocaras. No necesitas saber programar.
 Tiempo: unos 10-15 minutos la primera vez.
 
-Version actual: **v0.0.8**. Cambios: [CHANGELOG.md](CHANGELOG.md).
+Version actual: **v0.0.9**. Cambios: [CHANGELOG.md](CHANGELOG.md).
 
 > Que es Docker, en una frase: un programa que ejecuta esta app dentro de una "caja"
 > ya preparada, para que no tengas que instalar nada raro. Lo instalas una vez y ya.

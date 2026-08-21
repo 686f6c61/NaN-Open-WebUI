@@ -119,5 +119,31 @@ services:
         limits:
           memory: 1g
 
+  # Open Terminal (https://github.com/open-webui/open-terminal): terminal y
+  # navegador de ficheros persistente que Open WebUI usa como herramienta.
+  # SIN dominio ni puertos publicados: solo alcanzable dentro de la red de
+  # compose como http://open-terminal:8000. La key llega del panel.
+  # Es una shell real: restringe su uso a admins/grupo de confianza desde
+  # Open WebUI (politica de terminal) y NO montes nunca el docker socket.
+  open-terminal:
+    image: ghcr.io/open-webui/open-terminal:latest
+    restart: unless-stopped
+    environment:
+      - OPEN_TERMINAL_API_KEY=${OPEN_TERMINAL_API_KEY}
+    expose:
+      - "8000"
+    volumes:
+      - open-terminal-data:/home/user
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
 volumes:
   nan-open-webui-data:
+  open-terminal-data:

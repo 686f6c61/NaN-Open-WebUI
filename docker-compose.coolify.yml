@@ -91,6 +91,11 @@ services:
 
   # Metabuscador interno para la busqueda web: sin puertos publicados, solo
   # alcanzable desde la red de compose. El secreto viene del panel.
+  # OJO (Coolify): el bind de ./searxng NO se resuelve desde el repo — Coolify
+  # solo persiste el compose en el directorio de la app. Hay que copiar
+  # searxng/settings.yml a <dir-de-app>/searxng/settings.yml la primera vez
+  # (sin la seccion "formats" con json, la busqueda web devuelve 403).
+  # El directorio persiste entre redeploys: es una operacion one-shot.
   searxng:
     image: searxng/searxng:latest
     restart: unless-stopped

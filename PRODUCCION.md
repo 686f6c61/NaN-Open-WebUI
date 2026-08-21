@@ -102,6 +102,15 @@ server {
 > Coolify (sin puertos publicados, `expose` interno, sin nombres fijos):
 > despliega esa si tu hosting es Coolify.
 
+> **Matiz importante de Coolify:** los *bind mounts* de ficheros del repo
+> (como `./searxng`) **no funcionan tal cual**, porque Coolify solo persiste el
+> compose y el `.env` en el directorio de la app, no el resto del repo. Para
+> SearXNG, copia una vez `searxng/settings.yml` del repo a
+> `<directorio-de-la-app>/searxng/settings.yml` (en un Coolify autoalojado:
+> `/data/coolify/applications/<uuid>/searxng/settings.yml`). Ese directorio
+> persiste entre redeploys. Sin ese fichero, la búsqueda web falla con `403`
+> (el settings por defecto no habilita el formato JSON que Open WebUI consulta).
+
 Abre `https://chat.tudominio.com`, **crea tu cuenta admin** (la primera) y a
 continuacion cierra o controla el registro:
 

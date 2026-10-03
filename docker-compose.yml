@@ -30,9 +30,9 @@ services:
       - WEBUI_AUTH=true
       - WEBUI_NAME=${WEBUI_NAME:-NaN Chat}
       - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-}
-      - ENABLE_SIGNUP=${ENABLE_SIGNUP:-true}
-      # Que todos los usuarios de tu servidor vean todos los modelos de NaN
-      - BYPASS_MODEL_ACCESS_CONTROL=${BYPASS_MODEL_ACCESS_CONTROL:-true}
+      - ENABLE_SIGNUP=${ENABLE_SIGNUP:-false}
+      # No omitir el control de acceso a modelos para usuarios registrados por defecto.
+      - BYPASS_MODEL_ACCESS_CONTROL=${BYPASS_MODEL_ACCESS_CONTROL:-false}
       # --- Busqueda web (via SearXNG, sin API key). Ponlo en 'false' para desactivarla ---
       - ENABLE_WEB_SEARCH=${ENABLE_WEB_SEARCH:-true}
       - WEB_SEARCH_ENGINE=searxng
@@ -75,7 +75,7 @@ services:
     depends_on:
       - searxng
     ports:
-      - "${WEBUI_PORT:-3000}:8080"
+      - "${WEBUI_HOST:-127.0.0.1}:${WEBUI_PORT:-3000}:8080"
     volumes:
       # Datos persistentes (cuentas, chats, ajustes). Sobrevive a reinicios y updates.
       - nan-open-webui-data:/app/backend/data

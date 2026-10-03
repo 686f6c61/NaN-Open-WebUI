@@ -62,12 +62,14 @@ Hay que crear un archivo llamado `.env` con tu clave dentro. Elige tu sistema:
      Abre el Bloc de notas -> Archivo -> Guardar como -> en "Tipo" elige "Todos los
      archivos" -> nombre `.env` -> guardalo en la carpeta.
 2. Abre el archivo `.env` con el **Bloc de notas**.
-3. Busca la linea que pone `NAN_API_KEY=sk-pon-aqui-tu-api-key` y **sustituye**
+3. Busca la linea que pone `ENABLE_SIGNUP=false` y cambiala temporalmente a
+   `ENABLE_SIGNUP=true` para poder crear tu primera cuenta.
+4. Busca la linea que pone `NAN_API_KEY=sk-pon-aqui-tu-api-key` y **sustituye**
    `sk-pon-aqui-tu-api-key` por **tu clave** (la del Paso 2). Debe quedar asi:
    ```
    NAN_API_KEY=sk-tu-clave-de-verdad
    ```
-4. **Guarda** (Archivo -> Guardar) y cierra.
+5. **Guarda** (Archivo -> Guardar) y cierra.
 
 ### En Mac o Linux (lo hace solo)
 1. Abre un terminal **dentro de la carpeta**:
@@ -78,8 +80,9 @@ Hay que crear un archivo llamado `.env` con tu clave dentro. Elige tu sistema:
    ```bash
    ./setup.sh
    ```
-3. Te creara el `.env` y generara los secretos locales. Ahora abrelo y pon tu clave en
-   la linea `NAN_API_KEY=` (con cualquier editor de texto), y guarda.
+3. Te creara el `.env` y generara los secretos locales. Ahora abrelo, pon tu clave en
+   la linea `NAN_API_KEY=` y cambia temporalmente `ENABLE_SIGNUP=false` a
+   `ENABLE_SIGNUP=true` para crear tu primera cuenta. Guarda el archivo.
 
 > Reglas para no fallar con el `.env`:
 > - El archivo se llama **`.env`** exacto (con el punto delante, sin `.txt` al final).
@@ -112,7 +115,10 @@ Hay que crear un archivo llamado `.env` con tu clave dentro. Elige tu sistema:
 
 2. La primera vez te pedira crear una cuenta. La **primera cuenta es la de
    administrador** (la tuya). Pon tu email y una contraseña y entra.
-3. Arriba a la izquierda elige un modelo (por ejemplo `qwen3.6`) y a chatear. Para
+3. Despues de entrar como admin, vuelve al archivo `.env`, cambia `ENABLE_SIGNUP=true`
+   a `ENABLE_SIGNUP=false` y ejecuta otra vez `docker compose up -d` para cerrar el
+   registro.
+4. Arriba a la izquierda elige un modelo (por ejemplo `qwen3.6`) y a chatear. Para
    programacion o tareas largas con herramientas, prueba `glm5.2`.
 
 Ya esta. Lo tienes funcionando.

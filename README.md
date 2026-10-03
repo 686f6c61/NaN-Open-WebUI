@@ -74,7 +74,10 @@ nano .env
 docker compose up -d
 ```
 
-Abre **http://localhost:3000**. La **primera cuenta que crees sera la de administrador**.
+Antes de crear la primera cuenta, edita `.env` y pon `ENABLE_SIGNUP=true`; despues
+arranca con `docker compose up -d` y abre **http://localhost:3000**. La **primera
+cuenta que crees sera la de administrador**. Cuando termines, vuelve a poner
+`ENABLE_SIGNUP=false` y ejecuta `docker compose up -d` para cerrar el registro.
 
 > Windows/Mac sin `./setup.sh`: copia `.env.example` a `.env`, pon tu `NAN_API_KEY` y
 > genera `WEBUI_SECRET_KEY` y `SEARXNG_SECRET` con `openssl rand -hex 32`. Luego
@@ -219,9 +222,11 @@ superior de modelos: el selector superior es para chat; la integracion **Image**
 
 ## Notas
 
-- Por defecto la web escucha en `0.0.0.0:WEBUI_PORT`, accesible desde tu **red local**
-  (`http://IP-de-tu-equipo:3000`). Exponerlo a internet requiere HTTPS + firewall, fuera
-  del alcance de este paquete.
+- Por defecto la web escucha solo en `127.0.0.1:WEBUI_PORT`, accesible desde el
+  propio equipo (`http://localhost:3000`). Para exponerla a tu **red local**, cambia
+  `WEBUI_HOST=0.0.0.0` solo despues de crear la cuenta admin, cerrar el registro con
+  `ENABLE_SIGNUP=false` y revisar los permisos de modelos. Exponerlo a internet
+  requiere HTTPS + firewall, fuera del alcance de este paquete.
 - Compatible con cualquier endpoint estilo OpenAI: cambia `OPENAI_API_BASE_URL` para usar
   otro proveedor.
 

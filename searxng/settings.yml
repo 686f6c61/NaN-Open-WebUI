@@ -20,3 +20,19 @@ search:
   formats:
     - html
     - json
+
+# Buscadores web. Ademas de los activos por defecto (Google CSE, Brave, Wikipedia...)
+# se activan los que respondieron en las pruebas (octubre 2026). DuckDuckGo se usa
+# por su API (d.js, "duckduckgo web"): la variante HTML clasica recibe CAPTCHA casi
+# siempre desde IPs domesticas y de servidor, asi que se desactiva.
+engines:
+  - name: bing
+    disabled: false
+  - name: yahoo
+    disabled: false
+  - name: yep
+    disabled: false
+  - name: duckduckgo web
+    disabled: false
+  - name: duckduckgo
+    disabled: true

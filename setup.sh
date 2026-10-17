@@ -41,12 +41,32 @@ else
   echo "[OK] .env creado desde .env.example."
 fi
 
+# El .env lleva la API key y los secretos: solo legible por su propietario.
+chmod 600 .env
+
 ensure_secret WEBUI_SECRET_KEY
 ensure_secret SEARXNG_SECRET
+ensure_secret OPEN_TERMINAL_API_KEY
+
+# Copia la clave del terminal dentro de TERMINAL_SERVER_CONNECTIONS (aunque la
+# linea siga comentada), para que activarlo sea solo descomentar.
+TERMINAL_KEY="$(grep -E '^OPEN_TERMINAL_API_KEY=' .env | tail -n 1 | cut -d= -f2-)"
+if [ -n "$TERMINAL_KEY" ] && grep -q 'PON_AQUI_OPEN_TERMINAL_API_KEY' .env; then
+  sed -i.bak "s|PON_AQUI_OPEN_TERMINAL_API_KEY|${TERMINAL_KEY}|" .env
+  rm -f .env.bak
+fi
+
+KEY="$(grep -E '^NAN_API_KEY=' .env | tail -n 1 | cut -d= -f2-)"
+case "$KEY" in
+  ""|sk-pon-aqui-tu-api-key)
+    echo "[!] NAN_API_KEY sigue sin rellenar." ;;
+  nan_pat_*)
+    echo "[!] NAN_API_KEY es un platform token (nan_pat_...): NaN lo rechaza para inferencia. Usa una API key sk-..." ;;
+esac
 
 PORT="$(grep -E '^WEBUI_PORT=' .env | cut -d= -f2)"
 echo
 echo "Siguientes pasos:"
-echo "  1) Edita .env y pon tu NAN_API_KEY (la consigues en https://nan.builders)"
+echo "  1) Edita .env y pon tu NAN_API_KEY (la generas en https://cloud.nan.builders -> Settings -> API Keys)"
 echo "  2) Arranca:  docker compose up -d"
 echo "  3) Abre:     http://localhost:${PORT:-3000}"

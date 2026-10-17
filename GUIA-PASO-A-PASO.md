@@ -3,7 +3,7 @@
 Sigue estos pasos en orden y no te equivocaras. No necesitas saber programar.
 Tiempo: unos 10-15 minutos la primera vez.
 
-Version actual: **v0.0.9**. Cambios: [CHANGELOG.md](CHANGELOG.md).
+Version actual: **v1.0.0**. Cambios: [CHANGELOG.md](CHANGELOG.md).
 
 > Que es Docker, en una frase: un programa que ejecuta esta app dentro de una "caja"
 > ya preparada, para que no tengas que instalar nada raro. Lo instalas una vez y ya.
@@ -67,7 +67,18 @@ Hay que crear un archivo llamado `.env` con tu clave dentro. Elige tu sistema:
    ```
    NAN_API_KEY=sk-tu-clave-de-verdad
    ```
-4. **Guarda** (Archivo -> Guardar) y cierra.
+4. Faltan tres claves secretas que en Mac y Linux genera `setup.sh`. Abre
+   **PowerShell** (busca "PowerShell" en el menú Inicio) y pega esta línea:
+   ```
+   $b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); ($b | ForEach-Object { $_.ToString("x2") }) -join ""
+   ```
+   Saldrá una ristra de 64 letras y números. Ejecútala **tres veces** y pega cada
+   resultado en el `.env`:
+   - el primero en `WEBUI_SECRET_KEY=`
+   - el segundo en `SEARXNG_SECRET=`
+   - el tercero en `OPEN_TERMINAL_API_KEY=` **y también** en la línea
+     `TERMINAL_SERVER_CONNECTIONS`, en lugar de `PON_AQUI_OPEN_TERMINAL_API_KEY`
+5. **Guarda** (Archivo -> Guardar) y cierra.
 
 ### En Mac o Linux (lo hace solo)
 1. Abre un terminal **dentro de la carpeta**:
@@ -112,26 +123,28 @@ Hay que crear un archivo llamado `.env` con tu clave dentro. Elige tu sistema:
 
 2. La primera vez te pedira crear una cuenta. La **primera cuenta es la de
    administrador** (la tuya). Pon tu email y una contraseña y entra.
-3. Arriba a la izquierda elige un modelo (por ejemplo `qwen3.6`) y a chatear. Para
-   programacion o tareas de codigo, prueba `mimo-v2.5` o `qwen3.6`.
+3. Arriba a la izquierda ya viene elegido `deepseek-v4-flash`: a chatear. Para
+   agentes y codigo prueba tambien `glm5.3-flash` o `qwen3.8-flash`.
 
 Ya esta. Lo tienes funcionando.
 
-> **Otras personas de tu casa o equipo:** pueden entrar desde su navegador y
-> registrarse con su email. Con la configuracion por defecto, su cuenta queda
-> **en espera** hasta que tu la apruebes: Panel de administracion > Users.
-> Cuando ya este todo el mundo, cierra el registro poniendo `ENABLE_SIGNUP=false`
-> en el `.env` y volviendo a hacer `docker compose up -d`.
+> **Otras personas de tu casa o equipo:** nadie puede registrarse por su cuenta.
+> Les creas tú la cuenta en *Administración > Usuarios*, botón «+», y entran desde
+> su navegador con el email y la contraseña que les des.
 
-> **Buscar en internet:** en la caja del chat, activa el interruptor **Búsqueda web**
-> (el icono del globo) y pregunta lo que quieras. El modelo buscara en internet y te
+> **Buscar en internet:** viene activado (el icono del globo de la caja del chat
+> aparece encendido): pregunta lo que quieras. El modelo buscara en internet y te
 > respondera citando las fuentes. Funciona sin configurar nada y sin ninguna API key:
 > ya viene incluido un buscador propio (SearXNG). Funciona con cualquier modelo.
 
 > **Generar imagenes:** en el chat, pulsa **Integrations** junto a la caja de texto y
-> activa **Image** (icono de foto). Escribe el prompt y envia. Viene configurado con
-> `flux-2-klein` de NaN por debajo; no lo elijas en el selector superior de chat.
-> Si arriba sigue seleccionado `qwen3.6`, esta bien: ese es el modelo de chat.
+> activa **Image** (icono de foto). Escribe "genera una imagen de..." y envia. La
+> imagen la dibuja `qwen-image-2.1` de NaN y tarda alrededor de un minuto: espera.
+> Si arriba sigue seleccionado `deepseek-v4-flash`, esta bien: ese es el modelo de chat.
+> Prueba por ejemplo: `Genera una imagen de un faro en la costa gallega al atardecer
+> con el texto "NaN" pintado en la torre`. Asi queda:
+
+![Ejemplo de imagen generada en el chat](assets/chat-imagen.jpg)
 
 ---
 
@@ -164,8 +177,8 @@ Tus chats y tu cuenta se guardan; no se pierden al apagar.
 | Entras pero **no hay modelos** | La clave esta mal escrita o caducada | Revisa el `.env` (sin comillas ni espacios) y vuelve a `docker compose up -d` |
 | `port is already allocated` / puerto ocupado | El 3000 lo usa otra cosa | En el `.env` cambia `WEBUI_PORT=3000` por `WEBUI_PORT=3001` y entra en `http://localhost:3001` |
 | `docker: command not found` | Docker no esta instalado | Repite el Paso 1 |
-| Una **foto** da "no soporta imagenes" | Tienes un modelo de solo texto | Elige `qwen3.6`, `gemma4` o `mimo-v2.5` |
-| Pides una foto y responde texto / no sale imagen | No esta activa la integracion **Image** o el chat esta en tool calling nativo | Activa **Integrations > Image** y deja `DEFAULT_MODEL_PARAMS={"function_calling":"legacy"}` |
+| Una **foto** da "no soporta imagenes" | El modelo no tiene marcada la capacidad de vision | Todos los modelos de chat de NaN aceptan imagenes: activa *Vision* en Admin > Settings > Models para ese modelo |
+| Pides una foto y responde texto / no sale imagen | No esta activa la integracion **Image** | Activa **Integrations > Image** y pidelo de forma explicita: "genera una imagen de..." |
 | Generar imagenes falla | Falta acceso `inference-tier`, cuota, rate limit o tamaño valido | Revisa tu cuenta de NaN, espera unos segundos si has generado varias seguidas, y usa tamaños como `512x512` o `1024x1024` |
 | No puedo entrar desde otro equipo de casa | La web escucha solo en tu equipo por defecto | Pon `WEBUI_BIND=0.0.0.0` en el `.env` y entra con `http://IP-de-tu-equipo:3000` |
 
@@ -184,7 +197,7 @@ modelos los pones tu desde NaN, puedes aprovecharlos tambien para esto:
 2. Configuralo como proveedor compatible con OpenAI:
    - URL base: `https://api.nan.builders/v1`
    - API key: tu clave de NaN
-   - Modelo: por ejemplo `glm5.2` para coding agéntico, o `mimo-v2.5` / `qwen3.6`
+   - Modelo: por ejemplo `deepseek-v4-flash`, o `glm5.3-flash` / `qwen3.8-flash` para coding agéntico
 3. Abrelo **dentro de esta carpeta** y dile en lenguaje normal lo que quieres, por ejemplo:
    > "Quiero levantar esta imagen Docker para usar Open WebUI con NaN. Guiame paso a paso
    > segun el README y la guia, y avisame si me equivoco en algo."

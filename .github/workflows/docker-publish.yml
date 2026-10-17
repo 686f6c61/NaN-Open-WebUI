@@ -1,27 +1,75 @@
 name: Publicar imagen Docker (GHCR)
 
-# Construye la imagen y la publica en GitHub Packages (GHCR) en cada cambio de main
-# o al crear una etiqueta vX.Y.Z. No contiene ningun secreto: la API key es del usuario
-# final y se inyecta en tiempo de ejecucion.
+# Construye la imagen multiplataforma (amd64 + arm64) y la publica en GitHub
+# Packages (GHCR). No contiene ningun secreto: la API key es del usuario final y
+# se inyecta en tiempo de ejecucion.
+#   - Etiqueta vX.Y.Z  -> tags vX.Y.Z y latest
+#   - Push a main      -> tags main y sha-<commit> (latest queda en la ultima release)
+#   - Pull request     -> solo construye y prueba, no publica
+# Antes de publicar, el job smoke-test construye la imagen (amd64), levanta el
+# stack completo y comprueba que arranca bien configurado (.github/scripts/smoke-test.sh).
+# Las acciones van fijadas por SHA para que un tag movido no cambie lo que se ejecuta.
 
 on:
   push:
     branches: [ main ]
     tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Build (amd64, local)
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          load: true
+          tags: nan-open-webui:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Prueba de humo
+        run: .github/scripts/smoke-test.sh nan-open-webui:ci
+
   build-and-push:
+    needs: smoke-test
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: QEMU (arm64)
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+
+      - name: Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       - name: Login en GHCR
-        uses: docker/login-action@v3
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -29,17 +77,24 @@ jobs:
 
       - name: Metadatos de la imagen
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ghcr.io/${{ github.repository_owner }}/nan-open-webui
           tags: |
-            type=raw,value=latest
             type=ref,event=tag
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=ref,event=branch
+            type=sha
 
       - name: Build y push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
-          push: true
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

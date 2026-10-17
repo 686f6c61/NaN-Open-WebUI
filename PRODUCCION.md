@@ -43,12 +43,12 @@ Edita el `.env` de produccion. Valores recomendados:
 
 ```ini
 NAN_API_KEY=sk-tu-key-de-nan
-OPENWEBUI_IMAGE=ghcr.io/686f6c61/nan-open-webui:v0.0.9   # tag fijo, NUNCA latest
+OPENWEBUI_IMAGE=ghcr.io/686f6c61/nan-open-webui:v1.0.0   # tag fijo, NUNCA latest
 WEBUI_BIND=127.0.0.1                                      # solo el proxy llega
 WEBUI_PORT=3000
 WEBUI_SECRET_KEY=(generado por setup.sh)
 SEARXNG_SECRET=(generado por setup.sh)
-ENABLE_SIGNUP=true            # al principio, para crear el admin y dar de alta
+ENABLE_SIGNUP=false           # registro cerrado: el admin da de alta a cada persona
 DEFAULT_USER_ROLE=pending     # cada registro necesita tu aprobacion
 BYPASS_MODEL_ACCESS_CONTROL=false
 WEBUI_URL=https://chat.tudominio.com
@@ -114,39 +114,45 @@ server {
 Abre `https://chat.tudominio.com`, **crea tu cuenta admin** (la primera) y a
 continuacion cierra o controla el registro:
 
-- Flujo recomendado: deja `ENABLE_SIGNUP=true` + `DEFAULT_USER_ROLE=pending`; la gente
-  se registra y tu apruebas desde *Panel de administracion > Users*.
-- Censo cerrado: pon `ENABLE_SIGNUP=false` en el `.env` y `docker compose up -d`; das
-  de alta a cada persona manualmente desde el panel.
+- Por defecto el registro esta cerrado (`ENABLE_SIGNUP=false`): la primera cuenta se
+  crea igualmente y luego das de alta a cada persona en *Administracion > Usuarios*.
+  Crea tu cuenta admin nada mas arrancar.
+- Registro abierto con aprobacion: `ENABLE_SIGNUP=true` + `DEFAULT_USER_ROLE=pending`;
+  la gente se registra y tu apruebas desde el panel.
 
 ## 4) Backups
 
-Todo vive en el volumen `nan-open-webui-data`. Backup con la app parada (base de
-datos SQLite consistente):
+Cuentas, chats, ajustes y documentos viven en el volumen `nan-open-webui-data`.
+`./backup.sh` para la app unos segundos para que la base de
+datos SQLite quede consistente, guarda un `.tar.gz` con permisos `600` y la vuelve a
+arrancar aunque la copia falle:
 
 ```bash
-docker compose stop nan-open-webui
-docker run --rm -v nan-open-webui-data:/data -v /var/backups/nan-open-webui:/backup \
-  alpine tar czf /backup/nan-$(date +%F).tar.gz -C /data .
-docker compose start nan-open-webui
+./backup.sh /var/backups/nan-open-webui
 ```
 
-Cron ejemplo (diario a las 04:00, conserva 14 dias):
+Cron de ejemplo (diario a las 04:00, conserva 14 dias):
 
 ```cron
-0 4 * * * cd /opt/NaN-Open-WebUI && docker compose stop nan-open-webui && docker run --rm -v nan-open-webui-data:/data -v /var/backups/nan-open-webui:/backup alpine tar czf /backup/nan-$(date +\%F).tar.gz -C /data . && docker compose start nan-open-webui && find /var/backups/nan-open-webui -name 'nan-*.tar.gz' -mtime +14 -delete
+0 4 * * * cd /opt/NaN-Open-WebUI && KEEP_DAYS=14 ./backup.sh /var/backups/nan-open-webui >> /var/log/nan-backup.log 2>&1
 ```
 
 **Restaurar** (verificalo una vez en un entorno de prueba; un backup no probado no es
 un backup):
 
 ```bash
-docker compose down
-docker volume rm nan-open-webui-data
-docker volume create nan-open-webui-data
-docker run --rm -v nan-open-webui-data:/data -v /var/backups/nan-open-webui:/backup \
-  alpine sh -c "tar xzf /backup/nan-2026-08-21.tar.gz -C /data"
-docker compose up -d
+./restore.sh /var/backups/nan-open-webui/nan-2026-10-17_040000.tar.gz
+```
+
+`restore.sh` comprueba que el fichero contiene `webui.db`, pide que escribas
+`restaurar` (o `--yes` en scripts), guarda antes el estado actual en
+`backups/antes-de-restaurar/` y arranca de nuevo el stack al terminar.
+
+Los ficheros de Open Terminal van en otro volumen. Mismos scripts, indicando cuál:
+
+```bash
+VOLUME=nan-open-terminal-data SERVICE=open-terminal ./backup.sh /var/backups/nan-terminal
+VOLUME=nan-open-terminal-data SERVICE=open-terminal CHECK_FILE= ./restore.sh /var/backups/nan-terminal/nan-....tar.gz
 ```
 
 > Si te alojas en un VPS, copia tambien los `.tar.gz` fuera del servidor (rsync a
@@ -160,7 +166,7 @@ pasa solo.
 
 ```bash
 # 1) backup (paso 4)
-# 2) edita .env:  OPENWEBUI_IMAGE=ghcr.io/686f6c61/nan-open-webui:v0.0.9
+# 2) edita .env:  OPENWEBUI_IMAGE=ghcr.io/686f6c61/nan-open-webui:v1.0.0
 # 3) aplica y observa las migraciones
 docker compose up -d
 docker compose logs -f nan-open-webui
@@ -168,6 +174,13 @@ docker compose logs -f nan-open-webui
 
 Si algo sale mal: restaura el backup (paso 4), vuelve el tag anterior en el `.env` y
 `docker compose up -d`.
+
+> **Configuracion persistente al actualizar.** Con `ENABLE_PERSISTENT_CONFIG=true`
+> (por defecto), Open WebUI solo lee del `.env` los ajustes que aun no tiene
+> guardados en su base de datos. Los valores por defecto nuevos de una version
+> (modelos visibles, reranker, voz, tamaño de lote de embeddings...) **no se aplican
+> solos** a una instalacion existente: cambialos en el panel de administracion o
+> arranca una vez con `ENABLE_PERSISTENT_CONFIG=false`. Detalle en el CHANGELOG.
 
 ## 6) Checklist final
 

@@ -4,34 +4,65 @@
 #   - Sin `ports:` — el proxy inverso de Coolify (Traefik) publica el dominio;
 #     el servicio solo expone 8080 dentro de la red interna. Nunca se publica
 #     el puerto directamente en el host.
-#   - Sin `container_name` ni nombre de volumen fijo — los gestiona Coolify.
+#   - Sin `container_name`, nombre de volumen ni red fijos — los gestiona Coolify.
 #   - Toda la configuracion (key, secretos, modelos) llega por las variables
-#     de entorno definidas en el panel de la aplicacion.
+#     de entorno definidas en el panel de la aplicacion. Las marcadas con `:?`
+#     son obligatorias: Coolify las pide antes de desplegar.
+#   - Cookies `Secure` (el dominio siempre va por HTTPS tras Traefik).
 # El resto es identico al compose local: SearXNG interno, healthchecks,
 # arranque ordenado, rotacion de logs y limites de memoria.
 
 services:
   nan-open-webui:
-    image: ${OPENWEBUI_IMAGE:-ghcr.io/686f6c61/nan-open-webui:v0.0.9}
+    image: ${OPENWEBUI_IMAGE:-ghcr.io/686f6c61/nan-open-webui:v1.0.0}
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     environment:
       # --- Conexion a NaN (OpenAI-compatible) ---
       - ENABLE_OPENAI_API=true
       - OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
       # La API key nunca esta en el repo: se define como variable en el panel.
-      - OPENAI_API_KEY=${NAN_API_KEY}
+      - OPENAI_API_KEY=${NAN_API_KEY:?}
       - 'OPENAI_API_CONFIGS=${OPENAI_API_CONFIGS:-}'
+      - DEFAULT_MODELS=${DEFAULT_MODELS:-deepseek-v4-flash}
       - 'DEFAULT_MODEL_PARAMS=${DEFAULT_MODEL_PARAMS:-}'
+      # Capacidades por defecto de todos los modelos. 'usage' hace que Open WebUI pida a
+      # NaN el recuento de tokens: sin ella, Admin > Analiticas muestra 0 tokens.
+      # 'builtinTools' apaga herramientas integradas poco usadas (calendario, automatizaciones,
+      # tareas, notas, canales): son ~10.000 caracteres en cada mensaje. Las skills
+      # siguen activas: sin ninguna seleccionada solo anaden create_skill a los admins.
+      - 'DEFAULT_MODEL_METADATA=${DEFAULT_MODEL_METADATA:-{"terminalId":"open-terminal","defaultFeatureIds":["web_search","image_generation"],"capabilities":{"file_context":true,"vision":true,"file_upload":true,"web_search":true,"image_generation":true,"code_interpreter":true,"terminal":true,"citations":true,"status_updates":true,"usage":true,"memory":true,"builtin_tools":true},"builtinTools":{"calendar":false,"automations":false,"tasks":false,"notes":false,"channels":false}}}'
+      # Tool Search (experimental en Open WebUI): las herramientas largas se envian solo
+      # por nombre y el modelo las carga cuando las necesita. Junto con lo anterior,
+      # un 77 % menos de tokens por mensaje (medido). 'false' para desactivarla.
+      - ENABLE_TOOL_SEARCH=${ENABLE_TOOL_SEARCH:-true}
+      # Herramientas que nunca se aplazan: con qwen3.8-flash, usarlas a traves de call_tool
+      # fallaba (11 llamadas rotas en una presentacion). Solo cuestan tokens cuando el
+      # terminal o esas integraciones estan activos.
+      - TOOL_SEARCH_ALWAYS_LOADED=${TOOL_SEARCH_ALWAYS_LOADED:-run_command,get_process_status,read_file,write_file,replace_file_content,display_file,list_files,view_skill,read_skill_file,search_web,fetch_url,generate_image,edit_image}
+      # Limite de caracteres de cada pagina que lee el modelo al buscar en internet.
+      # Vacio = sin limite (una pagina puede meter ~80.000 caracteres en el contexto).
+      - WEB_FETCH_MAX_CONTENT_LENGTH=${WEB_FETCH_MAX_CONTENT_LENGTH:-}
       # --- Sin modelos locales (solo NaN) ---
       - ENABLE_OLLAMA_API=false
       # --- Sesion e interfaz ---
       - WEBUI_AUTH=true
       - WEBUI_NAME=${WEBUI_NAME:-NaN Chat}
-      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
-      - WEBUI_URL=${WEBUI_URL:-}
-      - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN:-*}
+      # Logo de la comunidad NaN en favicon, barra lateral y pantalla de carga. La licencia
+      # de Open WebUI no permite cambiar su logo con mas de 50 usuarios: entonces, false.
+      - NAN_LOGO=${NAN_LOGO:-true}
+      # Icono de NaN para quien no tiene foto de perfil (en vez de la silueta gris).
+      - NAN_AVATAR=${NAN_AVATAR:-true}
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:?}
+      - WEBUI_URL=${WEBUI_URL:?}
+      # Por defecto solo el propio dominio (WEBUI_URL) puede hacer peticiones CORS.
+      - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN:-${WEBUI_URL}}
+      - WEBUI_SESSION_COOKIE_SECURE=true
+      - WEBUI_AUTH_COOKIE_SECURE=true
+      - ENABLE_COMMUNITY_SHARING=false
       # --- Multiusuario ---
-      - ENABLE_SIGNUP=${ENABLE_SIGNUP:-true}
+      - ENABLE_SIGNUP=${ENABLE_SIGNUP:-false}
       - DEFAULT_USER_ROLE=${DEFAULT_USER_ROLE:-pending}
       - BYPASS_MODEL_ACCESS_CONTROL=${BYPASS_MODEL_ACCESS_CONTROL:-false}
       - ENABLE_PERSISTENT_CONFIG=${ENABLE_PERSISTENT_CONFIG:-true}
@@ -39,26 +70,42 @@ services:
       - ENABLE_WEB_SEARCH=${ENABLE_WEB_SEARCH:-true}
       - WEB_SEARCH_ENGINE=searxng
       - SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>
-      # --- Voz: salida hablada con 'kokoro' de NaN; dictado con whisper local ---
+      # --- Voz: salida hablada con 'kokoro' de NaN ---
       - AUDIO_TTS_ENGINE=openai
       - AUDIO_TTS_OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
       - AUDIO_TTS_OPENAI_API_KEY=${NAN_API_KEY}
       - AUDIO_TTS_MODEL=kokoro
-      - AUDIO_TTS_VOICE=${AUDIO_TTS_VOICE:-af_sky}
-      # --- Embeddings del RAG con 'qwen3-embedding' de NaN ---
+      - AUDIO_TTS_VOICE=${AUDIO_TTS_VOICE:-ef_dora}
+      # --- Dictado: vacio = whisper local; 'openai' = 'whisper' de NaN ---
+      - AUDIO_STT_ENGINE=${AUDIO_STT_ENGINE:-}
+      - AUDIO_STT_OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
+      - AUDIO_STT_OPENAI_API_KEY=${NAN_API_KEY}
+      - AUDIO_STT_MODEL=${AUDIO_STT_MODEL:-whisper}
+      # --- RAG: embeddings 'qwen3-embedding' + reordenado 'rerank' de NaN ---
       - RAG_EMBEDDING_ENGINE=openai
       - RAG_OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
       - RAG_OPENAI_API_KEY=${NAN_API_KEY}
       - RAG_EMBEDDING_MODEL=qwen3-embedding
+      # NaN admite lotes de 32 textos y 60 peticiones/min en embeddings: sin esto
+      # Open WebUI manda una peticion por fragmento y la busqueda web acaba en 429.
+      - RAG_EMBEDDING_BATCH_SIZE=${RAG_EMBEDDING_BATCH_SIZE:-32}
+      - RAG_EMBEDDING_CONCURRENT_REQUESTS=${RAG_EMBEDDING_CONCURRENT_REQUESTS:-2}
+      - ENABLE_RAG_HYBRID_SEARCH=${ENABLE_RAG_HYBRID_SEARCH:-true}
+      - RAG_RERANKING_ENGINE=external
+      - RAG_EXTERNAL_RERANKER_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}/rerank
+      - RAG_EXTERNAL_RERANKER_API_KEY=${NAN_API_KEY}
+      - RAG_RERANKING_MODEL=rerank
       # --- Imagenes: generacion y edicion con 'flux-2-klein' de NaN ---
       - ENABLE_IMAGE_GENERATION=${ENABLE_IMAGE_GENERATION:-true}
       - ENABLE_IMAGE_PROMPT_GENERATION=${ENABLE_IMAGE_PROMPT_GENERATION:-false}
       - IMAGE_GENERATION_ENGINE=openai
-      - IMAGE_GENERATION_MODEL=${IMAGE_GENERATION_MODEL:-flux-2-klein}
+      - IMAGE_GENERATION_MODEL=${IMAGE_GENERATION_MODEL:-qwen-image-2.1}
       - IMAGE_SIZE=${IMAGE_SIZE:-1024x1024}
       - IMAGES_OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.nan.builders/v1}
       - IMAGES_OPENAI_API_KEY=${NAN_API_KEY}
-      - 'IMAGES_OPENAI_PARAMS=${IMAGES_OPENAI_PARAMS:-}'
+      # Fija el tamano en cada generacion: en modo nativo el modelo propone tamanos
+      # (p. ej. 1536x1024) que qwen-image-2.1 rechaza (maximo 1280 px).
+      - 'IMAGES_OPENAI_PARAMS=${IMAGES_OPENAI_PARAMS:-{"size":"${IMAGE_SIZE:-1024x1024}"}}'
       - ENABLE_IMAGE_EDIT=${ENABLE_IMAGE_EDIT:-true}
       - IMAGE_EDIT_ENGINE=openai
       - IMAGE_EDIT_MODEL=${IMAGE_EDIT_MODEL:-flux-2-klein}
@@ -72,6 +119,29 @@ services:
       # --- Tareas internas con un modelo rapido ---
       - ENABLE_AUTOCOMPLETE_GENERATION=true
       - TASK_MODEL_EXTERNAL=${TASK_MODEL_EXTERNAL:-deepseek-v4-flash}
+      # Sin razonamiento en titulos, etiquetas y sugerencias: medido, 1,5-2,3 s y 12 tokens
+      # por titulo, frente a 3,5-6 s y ~160 tokens razonando.
+      - 'TASK_MODEL_PARAMS=${TASK_MODEL_PARAMS:-{"reasoning_effort":"none"}}'
+      # Orden de los modelos en el selector.
+      - 'MODEL_ORDER_LIST=${MODEL_ORDER_LIST:-["deepseek-v4-flash","glm5.3-flash","mimo-v2.6-flash","qwen3.8-flash","gemma4","qwen3.6"]}'
+      # Compactacion de contexto: al pasar de 80.000 tokens resume el historial antiguo.
+      # Evita que los encargos largos con el terminal acaben en un 524 de NaN.
+      - ENABLE_CONTEXT_COMPACTION=${ENABLE_CONTEXT_COMPACTION:-true}
+      # PDF: extrae las imagenes para que el OCR lea tambien las paginas escaneadas.
+      - PDF_EXTRACT_IMAGES=${PDF_EXTRACT_IMAGES:-true}
+      # Plantilla de RAG propia; vacia = la de NaN (branding/rag-template.txt).
+      - RAG_TEMPLATE=${RAG_TEMPLATE:-}
+      - CONTEXT_COMPACTION_MODEL=${CONTEXT_COMPACTION_MODEL:-deepseek-v4-flash}
+      # Permisos de herramientas ("Acceso completo" / "Solicitar aprobacion" en el chat).
+      - ENABLE_TOOL_PERMISSIONS=${ENABLE_TOOL_PERMISSIONS:-true}
+      # Subagentes: el modelo puede delegar tareas en chats propios con herramientas.
+      # Cada subagente consume llamadas adicionales a NaN.
+      - ENABLE_SUBAGENTS=${ENABLE_SUBAGENTS:-true}
+      - SUBAGENTS_BACKGROUND_ENABLED=${SUBAGENTS_BACKGROUND_ENABLED:-true}
+      - SUBAGENTS_MAX_CONCURRENT=${SUBAGENTS_MAX_CONCURRENT:-20}
+      - SUBAGENTS_MAX_ASYNC=${SUBAGENTS_MAX_ASYNC:-20}
+      - SUBAGENTS_MAX_ITERATIONS=${SUBAGENTS_MAX_ITERATIONS:-30}
+      - SUBAGENTS_MAX_OUTPUT=${SUBAGENTS_MAX_OUTPUT:-30000}
     expose:
       - "8080"
     depends_on:
@@ -97,8 +167,16 @@ services:
   # (sin la seccion "formats" con json, la busqueda web devuelve 403).
   # El directorio persiste entre redeploys: es una operacion one-shot.
   searxng:
-    image: searxng/searxng:latest
+    image: ${SEARXNG_IMAGE:-searxng/searxng:2026.10.16-8252c0bf6}
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/healthz"]
       interval: 30s
@@ -106,7 +184,7 @@ services:
       retries: 5
       start_period: 30s
     environment:
-      - SEARXNG_SECRET=${SEARXNG_SECRET}
+      - SEARXNG_SECRET=${SEARXNG_SECRET:?}
     volumes:
       - ./searxng:/etc/searxng:rw
     logging:
@@ -126,14 +204,46 @@ services:
   # Es una shell real: restringe su uso a admins/grupo de confianza desde
   # Open WebUI (politica de terminal) y NO montes nunca el docker socket.
   open-terminal:
-    image: ghcr.io/open-webui/open-terminal:latest
+    # Sin no-new-privileges: la imagen usa sudo en su arranque y para instalar paquetes.
+    image: ${OPEN_TERMINAL_IMAGE:-ghcr.io/open-webui/open-terminal:0.14.1}
     restart: unless-stopped
     environment:
-      - OPEN_TERMINAL_API_KEY=${OPEN_TERMINAL_API_KEY}
+      - OPEN_TERMINAL_API_KEY=${OPEN_TERMINAL_API_KEY:?}
+      # Paquetes que se instalan en cada arranque (separados por espacios). Lo que
+      # el modelo instale con pip queda en el volumen; lo de apt se pierde al recrear.
+      - OPEN_TERMINAL_PACKAGES=${OPEN_TERMINAL_PACKAGES:-chromium fonts-liberation2 fonts-noto-core}
+      - OPEN_TERMINAL_PIP_PACKAGES=${OPEN_TERMINAL_PIP_PACKAGES:-}
+      - OPEN_TERMINAL_NPM_PACKAGES=${OPEN_TERMINAL_NPM_PACKAGES:-pptxgenjs hyperframes@0.8.168}
+      # npm -g sin sudo: los paquetes van a la carpeta del usuario (persisten en el
+      # volumen) y NODE_PATH permite que los scripts de las skills los importen.
+      # Sin esto, Open Terminal falla al instalarlos y el contenedor entra en bucle.
+      - NPM_CONFIG_PREFIX=/home/user/.local
+      - NODE_PATH=/home/user/.local/lib/node_modules
+      # Chromium para las skills que renderizan (webs, presentaciones, video).
+      - CHROME_PATH=/usr/local/bin/chromium
+      - PUPPETEER_EXECUTABLE_PATH=/usr/local/bin/chromium
+      # HyperFrames (video): sus skills ya van en skills/ con la misma version que el CLI
+      # de arriba; que no las reinstale en ~/.claude/skills (saldrian duplicadas), sin
+      # telemetria y sin consultar versiones nuevas en cada comando.
+      - HYPERFRAMES_SKIP_SKILLS=1
+      - HYPERFRAMES_NO_UPDATE_CHECK=1
+      - HYPERFRAMES_NO_TELEMETRY=1
+      - DO_NOT_TRACK=1
+      # Archify (diagramas): sin consultar actualizaciones y con el Chromium del terminal.
+      - ARCHIFY_UPDATE_CHECK_DISABLED=1
+      - ARCHIFY_CHROME=/usr/local/bin/chromium
     expose:
       - "8000"
     volumes:
       - open-terminal-data:/home/user
+      # Skills del repo. OJO (Coolify): igual que searxng/settings.yml, hay que copiar
+      # las carpetas skills/ y terminal/ al directorio de la app la primera vez.
+      - ./skills:/home/user/.agents/skills:ro
+      # Envoltorio de Chromium con --no-sandbox (ver terminal/chromium).
+      - ./terminal/chromium:/usr/local/bin/chromium:ro
+      # Instrucciones que el modelo lee en cada turno: empaquetar entregas en ZIP y
+      # explicar como descargarlas (ver terminal/AGENTS.md).
+      - ./terminal/AGENTS.md:/home/user/AGENTS.md:ro
     logging:
       driver: json-file
       options:

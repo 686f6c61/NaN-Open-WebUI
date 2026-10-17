@@ -1,0 +1,31 @@
+/* Marca de la comunidad NaN en la pantalla de entrada (ver branding/loader.js). */
+
+#nan-badge {
+	display: flex;
+	justify-content: center;
+	margin: 0 auto 1.75rem;
+}
+
+#nan-badge img {
+	max-width: 100%;
+	height: auto;
+}
+
+#nan-community {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	margin-top: 1.75rem;
+	font-size: 0.75rem;
+	color: #6b7280;
+}
+
+#nan-community img {
+	height: 1.1rem;
+	width: auto;
+}
+
+html.dark #nan-community {
+	color: #9ca3af;
+}

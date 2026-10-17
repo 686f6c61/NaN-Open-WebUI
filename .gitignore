@@ -6,3 +6,8 @@ data/
 *.tar
 *.tar.gz
 .~lock.*#
+backups/
+
+# Caches de Python
+__pycache__/
+*.pyc

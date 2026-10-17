@@ -1,0 +1,5 @@
+#!/bin/sh
+# Chromium sin su sandbox interno: dentro de Docker no puede crear los espacios de
+# nombres de usuario que necesita, y Debian 13 ya no publica chromium-sandbox.
+# El aislamiento lo da el propio contenedor de Open Terminal.
+exec /usr/bin/chromium --no-sandbox "$@"

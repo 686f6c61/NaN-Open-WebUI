@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.0.0 - 2026-10-17
+## v1.0.0 - 2026-10-17 - Open WebUI 0.12.3, terminal con 39 skills y marca de NaN
 
 Primera versión estable. Todo lo de esta entrada está probado con la API real de NaN,
 en el navegador y con un smoke test en un Docker limpio.

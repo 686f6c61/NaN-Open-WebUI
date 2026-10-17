@@ -3,7 +3,7 @@ name: Publicar imagen Docker (GHCR)
 # Construye la imagen multiplataforma (amd64 + arm64) y la publica en GitHub
 # Packages (GHCR). No contiene ningun secreto: la API key es del usuario final y
 # se inyecta en tiempo de ejecucion.
-#   - Etiqueta vX.Y.Z  -> tags vX.Y.Z y latest
+#   - Etiqueta vX.Y.Z  -> tags vX.Y.Z y latest, y release de GitHub con su CHANGELOG
 #   - Push a main      -> tags main y sha-<commit> (latest queda en la ultima release)
 #   - Pull request     -> solo construye y prueba, no publica
 # Antes de publicar, el job smoke-test construye la imagen (amd64), levanta el
@@ -98,3 +98,50 @@ jobs:
           sbom: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # Release de GitHub con la seccion de la version del CHANGELOG. Solo con etiquetas
+  # vX.Y.Z y solo si la imagen se ha publicado bien.
+  release:
+    needs: build-and-push
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Notas desde el CHANGELOG
+        id: notas
+        env:
+          TAG: ${{ github.ref_name }}
+          IMAGE: ghcr.io/${{ github.repository_owner }}/nan-open-webui
+        run: |
+          set -euo pipefail
+          # Cabecera "## vX.Y.Z - fecha - titulo": el titulo de la release es lo que va
+          # tras la version; el cuerpo, todo hasta la siguiente version.
+          header="$(grep -m1 "^## ${TAG} " CHANGELOG.md || true)"
+          [ -n "$header" ] || { echo "No hay seccion ${TAG} en CHANGELOG.md" >&2; exit 1; }
+          echo "title=${header#'## '}" >> "$GITHUB_OUTPUT"
+          {
+            echo "Imagen: \`${IMAGE}:${TAG}\` (amd64 y arm64)"
+            echo
+            echo '```bash'
+            echo "docker pull ${IMAGE}:${TAG}"
+            echo '```'
+            echo
+            awk -v tag="$TAG" '
+              $0 ~ "^## " tag " " { dentro = 1; next }
+              dentro && /^## v/ { exit }
+              dentro { print }
+            ' CHANGELOG.md
+          } > notas.md
+
+      - name: Crear la release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          TITLE: ${{ steps.notas.outputs.title }}
+        run: gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "$TITLE" --notes-file notas.md --verify-tag

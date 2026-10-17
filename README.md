@@ -4,8 +4,17 @@
 
 **Tu propio ChatGPT, con todos los modelos de NaN, corriendo en tu equipo y montado en 2 minutos.**
 
-Version actual: **v1.0.0**. Cambios: [CHANGELOG.md](CHANGELOG.md). Cómo usarlo todo:
-**[manual de uso](MANUAL-DE-USO.md)**.
+Version actual: **v1.0.0**. Cambios: [CHANGELOG.md](CHANGELOG.md).
+
+**Documentación**
+
+| Documento | Para qué |
+| --- | --- |
+| **[Manual de uso](MANUAL-DE-USO.md)** | Cómo usarlo todo: modelos, búsqueda, imágenes, documentos, voz, terminal y skills, descargas y consumo, con capturas |
+| [Guía paso a paso](GUIA-PASO-A-PASO.md) | Instalarlo sin saber nada de Docker (Windows, Mac y Linux) |
+| [Producción](PRODUCCION.md) | Servidor con dominio, HTTPS, Coolify y copias de seguridad |
+| [Skills del terminal](skills/README.md) | Las 39 skills: origen, licencias y resultados de las pruebas |
+| [CHANGELOG](CHANGELOG.md) | Qué cambia en cada versión y cómo actualizar |
 
 Una interfaz web tipo ChatGPT ([Open WebUI](https://github.com/open-webui/open-webui))
 ya conectada a la API de [NaN](https://nan.builders). Self-hosted, en Docker, con tu

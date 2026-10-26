@@ -1,0 +1,64 @@
+name: Actualizar apps upstream
+
+# Comprueba si hay version nueva de las apps upstream que usa este repo
+# (Open WebUI, SearXNG y Open Terminal) y abre un PR por app con el cambio,
+# o una issue si la app tiene codigo modificado por el autor. La deteccion y
+# la edicion las hace .github/scripts/actualizar-app.sh.
+#
+# No publica nada: la publicacion sigue siendo manual (CHANGELOG + tag vX.Y.Z).
+#
+# Por ahora solo se ejecuta a mano (workflow_dispatch). Si el autor quiere que
+# corra solo, basta con anadir un `schedule` (p. ej. `cron: "0 6 * * *"`), que
+# es la unica diferencia entre manual y automatico.
+#
+# OJO: los PR creados con el GITHUB_TOKEN no disparan los workflows del repo
+# (limite anti-recursion de GitHub). Si se define un PAT fino como secreto
+# AUTO_UPDATE_TOKEN (contents:write + pull_requests:write), los PR saldran con
+# el smoke test ya en marcha; si no, se puede lanzar docker-publish a mano
+# (workflow_dispatch) contra la rama del PR para validarlo.
+
+on:
+  workflow_dispatch:
+    inputs:
+      openwebui:
+        description: "Comprobar Open WebUI"
+        type: boolean
+        default: true
+      searxng:
+        description: "Comprobar SearXNG"
+        type: boolean
+        default: true
+      terminal:
+        description: "Comprobar Open Terminal"
+        type: boolean
+        default: true
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [openwebui, searxng, terminal]
+    steps:
+      - name: Checkout
+        if: inputs[matrix.app]
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Buscar version nueva y abrir PR o issue
+        if: inputs[matrix.app]
+        env:
+          GH_TOKEN: ${{ secrets.AUTO_UPDATE_TOKEN || secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: .github/scripts/actualizar-app.sh ${{ matrix.app }}

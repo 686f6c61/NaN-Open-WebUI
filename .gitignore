@@ -8,6 +8,55 @@ data/
 .~lock.*#
 backups/
 
+# Bases de datos, volcados y copias de trabajo
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.dump
+*.sql.gz
+*.sql.zst
+*.bak
+*.backup
+
+# Claves, sesiones y credenciales locales
+.envrc
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.kdbx
+*.har
+*.session
+/.netrc
+/.pypirc
+/.git-credentials
+/credentials*.json
+/service-account*.json
+/cookies*.json
+/cookies*.txt
+/storage-state*.json
+/auth-state*.json
+
+# Salidas de pruebas, logs y dependencias locales
+*.log
+/logs/
+/tmp/
+/temp/
+/artifacts/
+/.artifacts/
+/screenshots/
+/test-results/
+/playwright-report/
+/coverage/
+.cache/
+node_modules/
+.venv/
+venv/
+
 # Caches de Python
 __pycache__/
 *.pyc

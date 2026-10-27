@@ -14,7 +14,7 @@
 
 services:
   nan-open-webui:
-    image: ${OPENWEBUI_IMAGE:-ghcr.io/686f6c61/nan-open-webui:v1.0.0}
+    image: ${OPENWEBUI_IMAGE:-ghcr.io/686f6c61/nan-open-webui:v1.0.1}
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -167,7 +167,7 @@ services:
   # (sin la seccion "formats" con json, la busqueda web devuelve 403).
   # El directorio persiste entre redeploys: es una operacion one-shot.
   searxng:
-    image: ${SEARXNG_IMAGE:-searxng/searxng:2026.10.16-8252c0bf6}
+    image: ${SEARXNG_IMAGE:-searxng/searxng:2026.10.27-ef7bae9dd}
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -205,7 +205,7 @@ services:
   # Open WebUI (politica de terminal) y NO montes nunca el docker socket.
   open-terminal:
     # Sin no-new-privileges: la imagen usa sudo en su arranque y para instalar paquetes.
-    image: ${OPEN_TERMINAL_IMAGE:-ghcr.io/open-webui/open-terminal:0.14.1}
+    image: ${OPEN_TERMINAL_IMAGE:-ghcr.io/open-webui/open-terminal:0.14.5}
     restart: unless-stopped
     environment:
       - OPEN_TERMINAL_API_KEY=${OPEN_TERMINAL_API_KEY:?}

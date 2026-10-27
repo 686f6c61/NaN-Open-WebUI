@@ -43,7 +43,7 @@ Edita el `.env` de produccion. Valores recomendados:
 
 ```ini
 NAN_API_KEY=sk-tu-key-de-nan
-OPENWEBUI_IMAGE=ghcr.io/686f6c61/nan-open-webui:v1.0.0   # tag fijo, NUNCA latest
+OPENWEBUI_IMAGE=ghcr.io/686f6c61/nan-open-webui:v1.0.1   # tag fijo, NUNCA latest
 WEBUI_BIND=127.0.0.1                                      # solo el proxy llega
 WEBUI_PORT=3000
 WEBUI_SECRET_KEY=(generado por setup.sh)
@@ -166,7 +166,7 @@ pasa solo.
 
 ```bash
 # 1) backup (paso 4)
-# 2) edita .env:  OPENWEBUI_IMAGE=ghcr.io/686f6c61/nan-open-webui:v1.0.0
+# 2) edita .env:  OPENWEBUI_IMAGE=ghcr.io/686f6c61/nan-open-webui:v1.0.1
 # 3) aplica y observa las migraciones
 docker compose up -d
 docker compose logs -f nan-open-webui

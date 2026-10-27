@@ -12,7 +12,7 @@ services:
     # en runtime desde .env. Va fijada por tag para que actualizar sea una
     # decision deliberada (cambia OPENWEBUI_IMAGE en .env); asi un reinicio
     # normal nunca trae una version nueva con migraciones de datos.
-    image: ${OPENWEBUI_IMAGE:-ghcr.io/686f6c61/nan-open-webui:v1.0.0}
+    image: ${OPENWEBUI_IMAGE:-ghcr.io/686f6c61/nan-open-webui:v1.0.1}
     container_name: nan-open-webui
     restart: unless-stopped
     security_opt:
@@ -185,7 +185,7 @@ services:
   # Fijado por tag (SearXNG publica uno por fecha); para actualizar, cambia
   # SEARXNG_IMAGE en .env.
   searxng:
-    image: ${SEARXNG_IMAGE:-searxng/searxng:2026.10.16-8252c0bf6}
+    image: ${SEARXNG_IMAGE:-searxng/searxng:2026.10.27-ef7bae9dd}
     container_name: nan-searxng
     restart: unless-stopped
     security_opt:
@@ -225,7 +225,7 @@ services:
   # Es una shell real dentro del contenedor: no montes nunca el socket de Docker.
   # Sin no-new-privileges: la imagen usa sudo en su arranque y para instalar paquetes.
   open-terminal:
-    image: ${OPEN_TERMINAL_IMAGE:-ghcr.io/open-webui/open-terminal:0.14.1}
+    image: ${OPEN_TERMINAL_IMAGE:-ghcr.io/open-webui/open-terminal:0.14.5}
     container_name: nan-open-terminal
     profiles: ["terminal"]
     restart: unless-stopped

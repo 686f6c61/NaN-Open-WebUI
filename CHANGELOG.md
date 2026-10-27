@@ -1,5 +1,31 @@
 # Changelog
 
+## v1.0.1 - 2026-10-27 - Actualización de seguridad de WebUI y Open Terminal
+
+- **Open WebUI 0.12.4**, fijado por versión y digest. Upstream recomienda actualizar
+  todos los despliegues por correcciones de seguridad cuyos detalles se publicarán
+  tras la asignación de CVE: [notas oficiales](https://github.com/open-webui/open-webui/releases/tag/v0.12.4).
+- **Open Terminal 0.14.5** en ambos compose. Incluye las correcciones de 0.14.3:
+  las órdenes y notebooks dejan de heredar la API key del servidor; se corrigen
+  comprobaciones de usuario y aislamiento de notebooks en modo multiusuario,
+  y el arranque falla si no puede aplicar las restricciones de red solicitadas.
+  0.14.5 corrige además el tratamiento de credenciales malformadas.
+  [0.14.3](https://github.com/open-webui/open-terminal/releases/tag/v0.14.3),
+  [0.14.5](https://github.com/open-webui/open-terminal/releases/tag/v0.14.5).
+- **SearXNG 2026.10.27-ef7bae9dd**, actualizado desde la imagen del 16 de octubre.
+- Los tags de versión siguen siendo deliberados: `main` no mueve `latest`.
+- La prueba de humo usa recursos temporales propios y comprueba autenticación
+  del terminal, ausencia de su API key en los comandos y conservación del entorno
+  explícito. Puede ejecutarse junto a una instalación existente.
+- `.gitignore` y `.dockerignore` excluyen bases de datos, copias, logs,
+  credenciales y sesiones, también en subdirectorios. `AGENTS.md` recoge las
+  comprobaciones previas a publicar; `.env.example` sigue siendo una plantilla pública.
+
+**Antes de actualizar:** ejecuta `./backup.sh` y cambia `OPENWEBUI_IMAGE` a
+`ghcr.io/686f6c61/nan-open-webui:v1.0.1` si tu `.env` fija la versión anterior.
+Comprueba también posibles sobrescrituras de `OPEN_TERMINAL_IMAGE` y `SEARXNG_IMAGE`.
+Se conservan los volúmenes, las cuentas, los chats y la configuración persistente.
+
 ## v1.0.0 - 2026-10-17 - Open WebUI 0.12.3, terminal con 39 skills y marca de NaN
 
 Primera versión estable. Todo lo de esta entrada está probado con la API real de NaN,

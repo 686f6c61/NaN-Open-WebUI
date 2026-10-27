@@ -8,8 +8,8 @@
 # Version de Open WebUI fijada por tag y digest: cada build de la misma version
 # produce la misma imagen. Para subir de version, cambia ambos valores juntos
 # (el digest se obtiene con: docker buildx imagetools inspect ghcr.io/open-webui/open-webui:vX.Y.Z).
-ARG OPENWEBUI_VERSION=v0.12.3
-ARG OPENWEBUI_DIGEST=sha256:a537bbe1e6b428820f52ed4a029d7fff97062e24d5cf32c365fba36fd0542def
+ARG OPENWEBUI_VERSION=v0.12.4
+ARG OPENWEBUI_DIGEST=sha256:a5b9e403d19154796850679c8c5d1295301cee954be8b84ddd62af92426558f7
 FROM ghcr.io/open-webui/open-webui:${OPENWEBUI_VERSION}@${OPENWEBUI_DIGEST}
 
 # Marca de la comunidad NaN: insignia "Built with NaN" y simbolo de Helmcode en la

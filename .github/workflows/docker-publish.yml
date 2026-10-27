@@ -26,7 +26,21 @@ permissions:
   contents: read
 
 jobs:
+  updater-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pruebas del actualizador, sin acceso a servicios externos
+        run: |
+          bash -n .github/scripts/update-app.sh
+          python3 -m unittest discover -s .github/scripts/tests -v
+
   smoke-test:
+    needs: updater-tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

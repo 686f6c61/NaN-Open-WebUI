@@ -3,19 +3,21 @@ name: Actualizar apps upstream
 # Comprueba si hay version nueva de las apps upstream que usa este repo
 # (Open WebUI, SearXNG y Open Terminal) y abre un PR por app con el cambio,
 # o una issue si la app tiene codigo modificado por el autor. La deteccion y
-# la edicion las hace .github/scripts/actualizar-app.sh.
+# la edicion las hace .github/scripts/update-app.sh.
 #
-# No publica nada: la publicacion sigue siendo manual (CHANGELOG + tag vX.Y.Z).
+# No publica una release estable: requiere CHANGELOG + tag vX.Y.Z.
+# El merge de los PR puede publicar las imágenes de prueba main y sha.
 #
 # Por ahora solo se ejecuta a mano (workflow_dispatch). Si el autor quiere que
 # corra solo, basta con anadir un `schedule` (p. ej. `cron: "0 6 * * *"`), que
 # es la unica diferencia entre manual y automatico.
 #
-# OJO: los PR creados con el GITHUB_TOKEN no disparan los workflows del repo
-# (limite anti-recursion de GitHub). Si se define un PAT fino como secreto
-# AUTO_UPDATE_TOKEN (contents:write + pull_requests:write), los PR saldran con
-# el smoke test ya en marcha; si no, se puede lanzar docker-publish a mano
-# (workflow_dispatch) contra la rama del PR para validarlo.
+# Los PR creados con GITHUB_TOKEN requieren aprobar la ejecución de su CI.
+# También se puede lanzar docker-publish a mano contra la rama del PR.
+# AUTO_UPDATE_TOKEN es opcional: un PAT fino con contents:write y
+# pull_requests:write evita esa aprobación (issues:write solo en modo issue).
+# El repo debe permitir que GitHub Actions cree PR si usa GITHUB_TOKEN.
+# https://docs.github.com/en/actions/concepts/security/github_token
 
 on:
   workflow_dispatch:
@@ -32,19 +34,26 @@ on:
         description: "Comprobar Open Terminal"
         type: boolean
         default: true
+      dry_run:
+        description: "Solo comprobar, sin modificar Git ni GitHub"
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
 
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+  contents: read
 
 jobs:
   actualizar:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
     strategy:
       fail-fast: false
       matrix:
@@ -61,4 +70,5 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.AUTO_UPDATE_TOKEN || secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-        run: .github/scripts/actualizar-app.sh ${{ matrix.app }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+        run: .github/scripts/update-app.sh "${{ matrix.app }}"

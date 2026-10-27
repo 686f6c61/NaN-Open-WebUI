@@ -17,6 +17,9 @@
 - La prueba de humo usa recursos temporales propios y comprueba autenticación
   del terminal, ausencia de su API key en los comandos y conservación del entorno
   explícito. Puede ejecutarse junto a una instalación existente.
+- `.gitignore` y `.dockerignore` excluyen bases de datos, copias, logs,
+  credenciales y sesiones, también en subdirectorios. `AGENTS.md` recoge las
+  comprobaciones previas a publicar; `.env.example` sigue siendo una plantilla pública.
 
 **Antes de actualizar:** ejecuta `./backup.sh` y cambia `OPENWEBUI_IMAGE` a
 `ghcr.io/686f6c61/nan-open-webui:v1.0.1` si tu `.env` fija la versión anterior.

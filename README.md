@@ -4,7 +4,7 @@
 
 **Tu propio ChatGPT, con todos los modelos de NaN, corriendo en tu equipo y montado en 2 minutos.**
 
-Version actual: **v1.0.0**. Cambios: [CHANGELOG.md](CHANGELOG.md).
+Version actual: **v1.0.1**. Cambios: [CHANGELOG.md](CHANGELOG.md).
 
 **Documentación**
 
@@ -123,7 +123,7 @@ docker run -d --name nan-open-webui -p 127.0.0.1:3000:8080 \
   -e WEBUI_SECRET_KEY=$(openssl rand -hex 32) \
   -e ENABLE_WEB_SEARCH=false \
   -v nan-open-webui-data:/app/backend/data \
-  ghcr.io/686f6c61/nan-open-webui:v1.0.0
+  ghcr.io/686f6c61/nan-open-webui:v1.0.1
 ```
 
 Imagen: `ghcr.io/686f6c61/nan-open-webui` (tags `vX.Y.Z` y `latest`, para `linux/amd64` y `linux/arm64`).
@@ -175,8 +175,8 @@ Para exponerlo en internet con HTTPS, backups y actualizaciones controladas, sig
 | `NAN_API_KEY` | **Si** | — | Tu API key de NaN |
 | `WEBUI_SECRET_KEY` | **Si** | (se genera) | Firma las sesiones de la web; sin ella las sesiones caducan al recrear el contenedor |
 | `SEARXNG_SECRET` | **Si** | (se genera) | Secreto local de SearXNG para la busqueda web |
-| `OPENWEBUI_IMAGE` | No | `ghcr.io/686f6c61/nan-open-webui:v1.0.0` | Imagen y tag a usar; sube el tag para actualizar |
-| `SEARXNG_IMAGE` | No | `searxng/searxng:2026.10.16-8252c0bf6` | Imagen de SearXNG, fijada por tag de fecha |
+| `OPENWEBUI_IMAGE` | No | `ghcr.io/686f6c61/nan-open-webui:v1.0.1` | Imagen y tag a usar; sube el tag para actualizar |
+| `SEARXNG_IMAGE` | No | `searxng/searxng:2026.10.27-ef7bae9dd` | Imagen de SearXNG, fijada por tag de fecha |
 | `WEBUI_BIND` | No | `127.0.0.1` | Interfaz donde se publica; `0.0.0.0` para red local |
 | `WEBUI_PORT` | No | `3000` | Puerto local de la interfaz |
 | `WEBUI_NAME` | No | `NaN Chat` | Nombre mostrado en la UI |
@@ -373,7 +373,7 @@ y, antes de tocar nada, guarda el estado actual en `backups/antes-de-restaurar/`
 
 > La imagen de Open WebUI va **fijada por tag** (`OPENWEBUI_IMAGE`): actualizar es una
 > decision deliberada. Para subir de version: cambia el tag en el `.env` (p. ej. a
-> `v1.0.0`), haz un [backup](PRODUCCION.md#backups) si tienes datos importantes, y
+> `v1.0.1`), haz un [backup](PRODUCCION.md#backups) si tienes datos importantes, y
 > `docker compose up -d`. SearXNG también va fijado (`SEARXNG_IMAGE`); no guarda datos,
 > así que subirlo es seguro. Ojo: con la configuración persistente, los valores nuevos
 > del `.env` no pisan lo ya guardado (ver [Configuracion persistente](#configuracion-persistente-importante)).

@@ -14,7 +14,17 @@ EXPECTED="$(sed -n 's/^ARG OPENWEBUI_VERSION=v//p' Dockerfile)"
 TEST_DIR="$(mktemp -d)"
 PROJECT="nan-smoke-$(basename "$TEST_DIR" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9')"
 dc() { docker compose -p "$PROJECT" --env-file "$TEST_DIR/.env" -f "$TEST_DIR/compose.json" "$@"; }
-cleanup() { dc down -v >/dev/null 2>&1 || true; rm -rf "$TEST_DIR"; }
+cleanup() {
+  dc down -v >/dev/null 2>&1 || true
+  # SearXNG cambia el propietario de su configuración. El helper solo monta
+  # la copia temporal de esta prueba, para poder borrarla también en Linux.
+  if [ -d "$TEST_DIR/searxng" ]; then
+    docker run --rm --pull=never --network none --user 0:0 --entrypoint sh \
+      -v "$TEST_DIR/searxng:/smoke-config" "$IMAGE" \
+      -c 'chmod -R a+rwX /smoke-config' >/dev/null 2>&1 || true
+  fi
+  rm -rf "$TEST_DIR"
+}
 trap cleanup EXIT
 
 fail() { echo "[FALLO] $*" >&2; dc logs --tail 80 >&2 || true; exit 1; }
